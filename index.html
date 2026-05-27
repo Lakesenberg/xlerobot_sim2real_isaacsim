@@ -1,555 +1,479 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>XLeRobot Sim-to-Real | DGX Spark ARM64</title>
+<title>SO-101 Sim-to-Real Workshop on DGX Spark</title>
 <style>
-:root{--bg:#0d1117;--card:#161b22;--border:#30363d;--text:#e6edf3;--muted:#8b949e;--accent:#58a6ff;--green:#3fb950;--orange:#d29922;--red:#f85149;--purple:#bc8cff;--code-bg:#0d1117;--step-line:#30363d}
+:root{--c-bg:#fff;--c-text:#1a1a2e;--c-muted:#6b7280;--c-border:#e5e7eb;--c-accent:#2563eb;--c-accent-light:#dbeafe;--c-green:#059669;--c-green-bg:#ecfdf5;--c-orange:#d97706;--c-orange-bg:#fffbeb;--c-red:#dc2626;--c-red-bg:#fef2f2;--c-code-bg:#f8f9fa;--c-code-border:#e9ecef;--c-sidebar:#f9fafb;--c-link:#2563eb;--font-sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",Helvetica,Arial,sans-serif;--font-mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace}
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);line-height:1.7;overflow-x:hidden}
-a{color:var(--accent);text-decoration:none}
+body{font-family:var(--font-sans);color:var(--c-text);line-height:1.75;background:var(--c-bg);font-size:15px}
+a{color:var(--c-link);text-decoration:none}
 a:hover{text-decoration:underline}
+img{max-width:100%;border-radius:8px}
 
-/* Hero */
-.hero{position:relative;text-align:center;padding:60px 20px 40px;background:linear-gradient(135deg,#0d1117 0%,#161b22 50%,#1a1e2e 100%);border-bottom:1px solid var(--border)}
-.hero img{max-width:720px;width:100%;border-radius:12px;border:1px solid var(--border);box-shadow:0 8px 40px rgba(0,0,0,.5)}
-.hero h1{font-size:2.2em;margin:24px 0 8px;background:linear-gradient(90deg,var(--accent),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.hero p{color:var(--muted);font-size:1.05em;max-width:680px;margin:0 auto}
+.layout{display:flex;max-width:1280px;margin:0 auto}
+.sidebar{width:250px;position:sticky;top:0;height:100vh;overflow-y:auto;padding:20px 16px;border-right:1px solid var(--c-border);background:var(--c-sidebar);flex-shrink:0;font-size:13px}
+.sidebar h4{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--c-muted);margin:18px 0 6px;font-weight:600}
+.sidebar a{display:block;padding:4px 10px;border-radius:4px;color:var(--c-muted);margin:1px 0}
+.sidebar a:hover,.sidebar a.active{color:var(--c-accent);background:var(--c-accent-light);text-decoration:none}
+.content{flex:1;min-width:0;padding:40px 56px 100px}
+@media(max-width:860px){.layout{flex-direction:column}.sidebar{width:100%;height:auto;position:static;border:none;border-bottom:1px solid var(--c-border)}.content{padding:24px 20px 60px}}
 
-/* Layout */
-.container{max-width:1200px;margin:0 auto;display:flex;gap:0}
-.sidebar{width:260px;position:sticky;top:0;height:100vh;overflow-y:auto;padding:24px 16px;border-right:1px solid var(--border);flex-shrink:0;font-size:.88em;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
-.sidebar::-webkit-scrollbar{width:4px}
-.sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
-.sidebar .nav-group{margin-bottom:16px}
-.sidebar .nav-label{color:var(--muted);font-size:.75em;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;font-weight:600}
-.sidebar a{display:block;padding:4px 10px;border-radius:6px;color:var(--muted);transition:all .15s}
-.sidebar a:hover,.sidebar a.active{color:var(--text);background:var(--card);text-decoration:none}
-.sidebar a.step-link{color:var(--accent)}
-.main{flex:1;min-width:0;padding:32px 48px 80px}
+h1{font-size:2em;font-weight:800;margin-bottom:8px;letter-spacing:-.02em}
+h2{font-size:1.5em;font-weight:700;margin:48px 0 16px;padding-bottom:8px;border-bottom:2px solid var(--c-border)}
+h3{font-size:1.15em;font-weight:600;margin:28px 0 12px;color:var(--c-text)}
+h4{font-size:1em;font-weight:600;margin:20px 0 8px}
+p{margin:8px 0}
+.subtitle{color:var(--c-muted);font-size:1.05em;margin-bottom:24px}
 
-/* Sections */
-section{margin-bottom:56px}
-section h2{font-size:1.55em;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
-section h3{font-size:1.15em;margin:24px 0 10px;color:var(--accent)}
-section h4{font-size:1em;margin:16px 0 8px;color:var(--purple)}
+pre{background:var(--c-code-bg);border:1px solid var(--c-code-border);border-radius:6px;padding:16px 20px;overflow-x:auto;margin:12px 0;font-size:13px;line-height:1.7}
+code{font-family:var(--font-mono);font-size:.9em}
+:not(pre)>code{background:#f0f1f3;padding:2px 6px;border-radius:3px}
+pre .cmt{color:#6b7280;font-style:italic}
 
-/* Step badge */
-.step-badge{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;background:var(--accent);color:#fff;font-size:.85em;font-weight:700;flex-shrink:0}
+.note,.warn,.tip{border-radius:6px;padding:14px 18px;margin:16px 0;font-size:.92em}
+.note{background:var(--c-accent-light);border-left:4px solid var(--c-accent)}
+.warn{background:var(--c-orange-bg);border-left:4px solid var(--c-orange)}
+.tip{background:var(--c-green-bg);border-left:4px solid var(--c-green)}
+.note strong,.warn strong,.tip strong{display:block;margin-bottom:2px}
 
-/* Cards */
-.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px 24px;margin:16px 0}
-.card.tip{border-left:3px solid var(--green)}
-.card.warn{border-left:3px solid var(--orange)}
-.card-label{font-size:.78em;text-transform:uppercase;letter-spacing:.06em;font-weight:600;margin-bottom:4px}
-.card-label.tip{color:var(--green)}
-.card-label.warn{color:var(--orange)}
-
-/* Code blocks */
-pre{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:16px 20px;overflow-x:auto;margin:12px 0;position:relative;font-size:.88em;line-height:1.65}
-code{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:.92em}
-pre code{color:#e6edf3}
-:not(pre)>code{background:#1c2128;padding:2px 7px;border-radius:4px;font-size:.88em;color:var(--accent)}
-
-/* Syntax highlights */
-.cm{color:#8b949e}.kw{color:#ff7b72}.st{color:#a5d6ff}.fn{color:#d2a8ff}.nb{color:#79c0ff}.co{color:#ffa657}.va{color:#ffa657}
-
-/* Comment line in code */
-pre .c{color:#8b949e;font-style:italic}
-
-/* Explain block (the > lines after code) */
-.explain{background:#161b22;border-left:3px solid var(--border);padding:10px 16px;margin:-4px 0 12px;border-radius:0 8px 8px 0;color:var(--muted);font-size:.9em}
-.explain strong{color:var(--text)}
-.explain code{color:var(--accent);background:transparent;padding:0}
-
-/* Tables */
 table{width:100%;border-collapse:collapse;margin:12px 0;font-size:.92em}
-th{background:var(--card);text-align:left;padding:10px 14px;border:1px solid var(--border);font-weight:600;color:var(--accent);white-space:nowrap}
-td{padding:10px 14px;border:1px solid var(--border);vertical-align:top}
-tr:hover td{background:#1c2128}
+th{background:var(--c-sidebar);text-align:left;padding:10px 14px;border:1px solid var(--c-border);font-weight:600}
+td{padding:10px 14px;border:1px solid var(--c-border)}
 
-/* File tree */
-.tree{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px 24px;margin:16px 0;font-family:"SF Mono",Menlo,Consolas,monospace;font-size:.82em;line-height:1.8;overflow-x:auto;white-space:pre}
-.tree .dir{color:var(--accent);font-weight:600}
-.tree .file{color:var(--text)}
-.tree .new{color:var(--green);font-weight:600}
-.tree .cmt{color:var(--muted)}
+ol,ul{margin:8px 0 8px 24px}
+li{margin:4px 0}
 
-/* Pipeline */
-.pipeline{display:flex;flex-direction:column;gap:0;margin:16px 0}
-.pipe-step{display:flex;align-items:flex-start;gap:16px;position:relative;padding-bottom:20px}
-.pipe-step:not(:last-child)::after{content:'';position:absolute;left:19px;top:40px;bottom:0;width:2px;background:var(--step-line)}
-.pipe-num{width:40px;height:40px;border-radius:50%;background:var(--card);border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--accent);flex-shrink:0;font-size:.9em;z-index:1}
-.pipe-content{padding-top:8px}
-.pipe-title{font-weight:600;color:var(--text)}
-.pipe-desc{color:var(--muted);font-size:.9em}
+.hero-img{text-align:center;margin:24px 0}
+.hero-img img{border:1px solid var(--c-border);box-shadow:0 2px 12px rgba(0,0,0,.08)}
 
-/* Keyboard table */
-.key{display:inline-block;background:#21262d;border:1px solid var(--border);border-radius:4px;padding:1px 8px;font-family:"SF Mono",Menlo,monospace;font-size:.85em;min-width:28px;text-align:center;box-shadow:0 1px 0 var(--border)}
+.step-header{display:flex;align-items:center;gap:12px;margin:48px 0 16px;padding-bottom:8px;border-bottom:2px solid var(--c-border)}
+.step-header h2{margin:0;padding:0;border:none}
+.step-num{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;background:var(--c-accent);color:#fff;font-weight:700;font-size:.95em;flex-shrink:0}
 
-/* Troubleshooting */
-.trouble-row{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px 18px;margin:8px 0}
-.trouble-err{color:var(--red);font-family:monospace;font-size:.88em;margin-bottom:4px}
-.trouble-cause{color:var(--muted);font-size:.9em}
-.trouble-fix{color:var(--green);font-size:.9em}
-
-/* Architecture diagram */
-.arch{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:24px;margin:16px 0;font-family:"SF Mono",Menlo,monospace;font-size:.78em;line-height:1.7;overflow-x:auto;white-space:pre;color:var(--muted)}
-.arch .hl{color:var(--accent)}
-.arch .hl2{color:var(--green)}
-
-/* Responsive */
-@media(max-width:900px){
-  .container{flex-direction:column}
-  .sidebar{width:100%;height:auto;position:static;border-right:none;border-bottom:1px solid var(--border);display:flex;flex-wrap:wrap;gap:4px;padding:12px}
-  .sidebar .nav-group{margin-bottom:0}
-  .sidebar .nav-label{display:none}
-  .sidebar a{padding:4px 8px;font-size:.8em}
-  .main{padding:20px 16px 60px}
-  .hero h1{font-size:1.6em}
-}
-
-/* Version tabs */
-.vtabs{display:flex;gap:4px;margin:16px 0 0;background:var(--card);border:1px solid var(--border);border-radius:8px 8px 0 0;padding:6px 8px 0;border-bottom:none}
-.vtab{padding:8px 20px;border-radius:6px 6px 0 0;cursor:pointer;font-size:.88em;font-weight:600;color:var(--muted);border:1px solid transparent;border-bottom:none;transition:all .15s;user-select:none}
-.vtab:hover{color:var(--text)}
-.vtab.active{color:var(--accent);background:var(--bg);border-color:var(--border);border-bottom:1px solid var(--bg);margin-bottom:-1px;position:relative;z-index:1}
-.vtab .tag{font-size:.7em;padding:1px 6px;border-radius:10px;margin-left:6px;vertical-align:middle}
-.vtab .tag.new{background:#238636;color:#fff}
-.vtab .tag.stable{background:#30363d;color:var(--muted)}
-.vpanel{border:1px solid var(--border);border-radius:0 0 8px 8px;padding:20px 24px;background:var(--bg);display:none}
-.vpanel.active{display:block}
-
-/* Collapsible */
 details{margin:12px 0}
-details summary{cursor:pointer;padding:10px 16px;background:var(--card);border:1px solid var(--border);border-radius:8px;font-weight:600;user-select:none;list-style:none;display:flex;align-items:center;gap:8px}
-details summary::before{content:'>';color:var(--accent);font-family:monospace;transition:transform .2s}
-details[open] summary::before{transform:rotate(90deg)}
-details[open] summary{border-radius:8px 8px 0 0}
-details .detail-body{border:1px solid var(--border);border-top:none;border-radius:0 0 8px 8px;padding:16px 20px;background:var(--card)}
+details>summary{cursor:pointer;padding:10px 14px;background:var(--c-sidebar);border:1px solid var(--c-border);border-radius:6px;font-weight:600;font-size:.92em}
+details[open]>summary{border-radius:6px 6px 0 0}
+details>.details-body{border:1px solid var(--c-border);border-top:none;border-radius:0 0 6px 6px;padding:16px 20px;background:var(--c-code-bg)}
+
+.file-tree{font-family:var(--font-mono);font-size:12px;line-height:2;background:var(--c-code-bg);border:1px solid var(--c-code-border);border-radius:6px;padding:16px 20px;overflow-x:auto;white-space:pre}
+.file-tree .dir{color:var(--c-accent);font-weight:600}
+.file-tree .new{color:var(--c-green);font-weight:600}
+.file-tree .cmt{color:var(--c-muted)}
+
+.kbd{display:inline-block;background:var(--c-sidebar);border:1px solid var(--c-border);border-radius:3px;padding:1px 6px;font-family:var(--font-mono);font-size:12px;box-shadow:0 1px 0 var(--c-border)}
+
+.vtabs{display:flex;gap:2px;margin:16px 0 0;border-bottom:2px solid var(--c-border)}
+.vtab{padding:8px 20px;cursor:pointer;font-size:13px;font-weight:600;color:var(--c-muted);border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s}
+.vtab:hover{color:var(--c-text)}
+.vtab.active{color:var(--c-accent);border-bottom-color:var(--c-accent)}
+.vtab .badge{font-size:10px;background:var(--c-green);color:#fff;padding:1px 6px;border-radius:8px;margin-left:4px;vertical-align:middle}
+.vpanel{padding:16px 0;display:none}
+.vpanel.active{display:block}
 </style>
 </head>
 <body>
+<div class="layout">
 
-<div class="hero">
-  <img src="isaac%20sim%20lerobot.gif" alt="XLeRobot Isaac Sim + LeRobot Demo">
-  <h1>XLeRobot Sim-to-Real</h1>
-  <p>NVIDIA DGX Spark (GB10 ARM64) + Isaac Sim + LeRobot + GR00T N1.6<br>从仿真到真机部署的全流程指南</p>
-</div>
-
-<div class="container">
-
-<!-- Sidebar -->
 <nav class="sidebar" id="sidebar">
-  <div class="nav-group">
-    <div class="nav-label">准备</div>
-    <a href="#platform">平台要求</a>
-    <a href="#arch">架构总览</a>
-    <a href="#pipeline">流程一览</a>
-  </div>
-  <div class="nav-group">
-    <div class="nav-label">操作步骤</div>
-    <a href="#step1" class="step-link">1. 准备工作</a>
-    <a href="#step2" class="step-link">2. 构建仿真容器</a>
-    <a href="#step3" class="step-link">3. 构建真机容器</a>
-    <a href="#step4" class="step-link">4. 启动仿真环境</a>
-    <a href="#step5" class="step-link">5. 验证环境</a>
-    <a href="#step6" class="step-link">6. 遥操作采集数据</a>
-    <a href="#step7" class="step-link">7. 上传数据集</a>
-    <a href="#step8" class="step-link">8. 训练 GR00T N1.6</a>
-    <a href="#step9" class="step-link">9. 部署到真机</a>
-  </div>
-  <div class="nav-group">
-    <div class="nav-label">参考</div>
-    <a href="#envs">仿真环境列表</a>
-    <a href="#controls">操控说明</a>
-    <a href="#fixes">修复清单</a>
-    <a href="#trouble">常见报错</a>
-    <a href="#structure">项目结构</a>
-  </div>
+<h4>Getting started</h4>
+<a href="#overview">Overview</a>
+<a href="#requirements">Requirements</a>
+<a href="#architecture">Architecture</a>
+<h4>Setup</h4>
+<a href="#step1">1. Clone & prepare</a>
+<a href="#step2">2. Build sim container</a>
+<a href="#step3">3. Build real container</a>
+<h4>Simulation</h4>
+<a href="#step4">4. Launch simulation</a>
+<a href="#step5">5. Verify environment</a>
+<a href="#step6">6. Teleoperation</a>
+<h4>Training</h4>
+<a href="#step7">7. Push dataset</a>
+<a href="#step8">8. Train GR00T</a>
+<h4>Deployment</h4>
+<a href="#step9">9. Deploy to real robot</a>
+<h4>Reference</h4>
+<a href="#environments">Environments</a>
+<a href="#controls">Controls</a>
+<a href="#arm64-fixes">ARM64 fixes</a>
+<a href="#troubleshooting">Troubleshooting</a>
+<a href="#project-structure">Project structure</a>
 </nav>
 
-<!-- Main Content -->
-<main class="main">
+<main class="content">
 
-<!-- Platform -->
-<section id="platform">
-<h2>平台要求</h2>
+<!-- Overview -->
+<section id="overview">
+<h1>SO-101 Sim-to-Real Workshop</h1>
+<p class="subtitle">Train an SO-101 robot from simulation to real-world deployment on NVIDIA DGX Spark (ARM64 Blackwell), using Isaac Sim, LeRobot, and GR00T.</p>
 
-<div class="vtabs" data-group="platform">
-  <div class="vtab active" data-tab="n17">N1.7<span class="tag new">NEW</span></div>
-  <div class="vtab" data-tab="n16">N1.6<span class="tag stable">stable</span></div>
+<div class="hero-img">
+<img src="images/xlerobot_isaac_sim.gif" alt="SO-101 parallel simulation in Isaac Sim">
 </div>
-<div class="vpanel active" data-group="platform" data-tab="n17">
+
+<p>This repository is a <strong>DGX Spark (ARM64) adaptation</strong> of the <a href="https://github.com/isaac-sim/Sim-to-Real-SO-101-Workshop">official NVIDIA Sim-to-Real SO-101 Workshop</a>. It provides:</p>
+<ul>
+<li>ARM64-patched Dockerfiles for both simulation and real robot containers</li>
+<li>One-click build and launch scripts for DGX Spark</li>
+<li>Support for both GR00T N1.6 (stable) and N1.7 (latest)</li>
+<li>All Python packaging fixes needed to run on aarch64</li>
+</ul>
+
+<p>The complete pipeline:</p>
+<ol>
+<li><strong>Simulate</strong> — Isaac Sim + IsaacLab environments for the SO-101 robotic arm</li>
+<li><strong>Collect</strong> — Keyboard teleoperation with automatic LeRobot dataset recording</li>
+<li><strong>Train</strong> — Fine-tune a GR00T vision-language-action model on collected data</li>
+<li><strong>Deploy</strong> — Transfer the trained policy to a real SO-101 robot</li>
+</ol>
+
+<div class="hero-img">
+<img src="images/xlerobot_isaac_sim_show.gif" alt="SO-101 close-up in Isaac Sim">
+</div>
+</section>
+
+<!-- Requirements -->
+<section id="requirements">
+<h2>Requirements</h2>
+
+<h3>Hardware</h3>
 <table>
-<tr><th>项目</th><th>规格</th></tr>
-<tr><td>硬件</td><td>NVIDIA DGX Spark (GB10)</td></tr>
-<tr><td>架构</td><td>aarch64 (ARM64)</td></tr>
-<tr><td>GPU</td><td>Blackwell, ~92 GB 统一显存</td></tr>
-<tr><td>OS</td><td>Ubuntu 24.04 LTS</td></tr>
-<tr><td>CUDA</td><td><strong>13.2</strong></td></tr>
-<tr><td>Isaac Sim</td><td><strong>6 beta</strong> (via Isaac Lab 3.0.0-beta1)</td></tr>
-<tr><td>GR00T</td><td><strong>N1.7</strong></td></tr>
-<tr><td>LeRobot</td><td><strong>0.5.2+</strong> (d656da8)</td></tr>
-<tr><td>Python</td><td><strong>3.12</strong></td></tr>
-<tr><td>PyTorch</td><td><strong>2.10.0</strong></td></tr>
+<tr><th>Component</th><th>Specification</th></tr>
+<tr><td>Platform</td><td>NVIDIA DGX Spark (GB10)</td></tr>
+<tr><td>Architecture</td><td>aarch64 (ARM64)</td></tr>
+<tr><td>GPU</td><td>Blackwell, ~92 GB unified memory</td></tr>
+<tr><td>Real robot (optional)</td><td>SO-101 arm + Feetech servos + USB camera</td></tr>
 </table>
-</div>
-<div class="vpanel" data-group="platform" data-tab="n16">
-<table>
-<tr><th>项目</th><th>规格</th></tr>
-<tr><td>硬件</td><td>NVIDIA DGX Spark (GB10)</td></tr>
-<tr><td>架构</td><td>aarch64 (ARM64)</td></tr>
-<tr><td>GPU</td><td>Blackwell, ~92 GB 统一显存</td></tr>
-<tr><td>OS</td><td>Ubuntu 24.04 LTS</td></tr>
-<tr><td>CUDA</td><td>13.0</td></tr>
-<tr><td>Isaac Sim</td><td>4.5+ (via Isaac Lab 2.3.2)</td></tr>
-<tr><td>GR00T</td><td>N1.6</td></tr>
-<tr><td>LeRobot</td><td>0.4.3 (e670ac5)</td></tr>
-<tr><td>Python</td><td>3.10</td></tr>
-<tr><td>PyTorch</td><td>2.7.0</td></tr>
-</table>
-</div>
 
-<h3>软件检查</h3>
-<pre><code><span class="c"># 检查 Docker</span>
+<h3>Software</h3>
+<table>
+<tr><th>Software</th><th>Version</th></tr>
+<tr><td>OS</td><td>Ubuntu 24.04 LTS</td></tr>
+<tr><td>CUDA Toolkit</td><td>13.0+ (N1.6) / 13.2+ (N1.7)</td></tr>
+<tr><td>Docker</td><td>Latest</td></tr>
+<tr><td><a href="https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html">NVIDIA Container Toolkit</a></td><td>Latest</td></tr>
+<tr><td>conda / miniforge</td><td>Latest (for training step)</td></tr>
+</table>
+
+<h3>Version stacks</h3>
+<p>This repository supports two version stacks. Choose based on your needs:</p>
+<table>
+<tr><th></th><th>N1.6 (stable)</th><th>N1.7 (latest)</th></tr>
+<tr><td>Isaac Sim</td><td>4.5+</td><td>6 beta</td></tr>
+<tr><td>Isaac Lab</td><td>2.3.2</td><td>3.0.0-beta1</td></tr>
+<tr><td>GR00T</td><td>N1.6</td><td>N1.7</td></tr>
+<tr><td>LeRobot</td><td>0.4.3</td><td>0.5.2+</td></tr>
+<tr><td>Python</td><td>3.10</td><td>3.12</td></tr>
+<tr><td>PyTorch</td><td>2.7.0</td><td>2.10.0</td></tr>
+</table>
+
+<h3>Verify your setup</h3>
+<pre><code><span class="cmt"># Docker installed?</span>
 docker --version
 
-<span class="c"># 检查 GPU 是否可用</span>
+<span class="cmt"># GPU accessible from Docker?</span>
 docker run --rm --gpus all nvidia/cuda:13.0.0-base-ubuntu24.04 nvidia-smi
 
-<span class="c"># 检查架构 (必须是 aarch64)</span>
-uname -m</code></pre>
+<span class="cmt"># Architecture correct?</span>
+uname -m
+<span class="cmt"># Expected: aarch64</span></code></pre>
 </section>
 
 <!-- Architecture -->
-<section id="arch">
-<h2>架构总览</h2>
-<div class="arch"><span class="hl">┌──────────────────────────────────────────────────────────────┐</span>
-<span class="hl">│</span>                   DGX Spark (GB10 ARM64)                      <span class="hl">│</span>
-<span class="hl">│</span>                                                              <span class="hl">│</span>
-<span class="hl">│</span>  <span class="hl2">┌─────────────────────┐</span>   <span class="hl2">┌─────────────────────────┐</span>  <span class="hl">│</span>
-<span class="hl">│</span>  <span class="hl2">│</span> <b>Sim Container</b>       <span class="hl2">│</span>   <span class="hl2">│</span> <b>Real Robot Container</b>   <span class="hl2">│</span>  <span class="hl">│</span>
-<span class="hl">│</span>  <span class="hl2">│</span> (teleop-docker)     <span class="hl2">│</span>   <span class="hl2">│</span> (real-robot)            <span class="hl2">│</span>  <span class="hl">│</span>
-<span class="hl">│</span>  <span class="hl2">│</span>                     <span class="hl2">│</span>   <span class="hl2">│</span>                         <span class="hl2">│</span>  <span class="hl">│</span>
-<span class="hl">│</span>  <span class="hl2">│</span> Isaac Sim 4.5+      <span class="hl2">│</span>   <span class="hl2">│</span> GR00T N1.6 推理服务     <span class="hl2">│</span>  <span class="hl">│</span>
-<span class="hl">│</span>  <span class="hl2">│</span> Isaac Lab 2.3.2     <span class="hl2">│</span>   <span class="hl2">│</span> SO-101 硬件控制         <span class="hl2">│</span>  <span class="hl">│</span>
-<span class="hl">│</span>  <span class="hl2">│</span> LeRobot             <span class="hl2">│</span>   <span class="hl2">│</span> Feetech 舵机 SDK        <span class="hl2">│</span>  <span class="hl">│</span>
-<span class="hl">│</span>  <span class="hl2">│</span> XLeRobot 扩展       <span class="hl2">│</span>   <span class="hl2">│</span> Rerun 可视化            <span class="hl2">│</span>  <span class="hl">│</span>
-<span class="hl">│</span>  <span class="hl2">│</span>                     <span class="hl2">│</span>   <span class="hl2">│</span>                         <span class="hl2">│</span>  <span class="hl">│</span>
-<span class="hl">│</span>  <span class="hl2">│</span> 遥操作 + 数据录制 ──<span class="hl2">┤</span>───<span class="hl2">├</span>─▶ 策略推理 + 动作执行   <span class="hl2">│</span>  <span class="hl">│</span>
-<span class="hl">│</span>  <span class="hl2">└─────────────────────┘</span>   <span class="hl2">└─────────────────────────┘</span>  <span class="hl">│</span>
-<span class="hl">│</span>          │                            │                     <span class="hl">│</span>
-<span class="hl">│</span>          ▼                            ▼                     <span class="hl">│</span>
-<span class="hl">│</span>    HuggingFace Hub            Real SO-101 Robot             <span class="hl">│</span>
-<span class="hl">└──────────────────────────────────────────────────────────────┘</span></div>
-</section>
-
-<!-- Pipeline -->
-<section id="pipeline">
-<h2>全流程一览</h2>
-<div class="pipeline">
-  <div class="pipe-step"><div class="pipe-num">1</div><div class="pipe-content"><div class="pipe-title">准备工作</div><div class="pipe-desc">克隆代码、创建缓存目录</div></div></div>
-  <div class="pipe-step"><div class="pipe-num">2</div><div class="pipe-content"><div class="pipe-title">构建仿真容器</div><div class="pipe-desc">docker build — Isaac Sim + LeRobot</div></div></div>
-  <div class="pipe-step"><div class="pipe-num">3</div><div class="pipe-content"><div class="pipe-title">构建真机容器</div><div class="pipe-desc">docker build — GR00T + 舵机控制</div></div></div>
-  <div class="pipe-step"><div class="pipe-num">4</div><div class="pipe-content"><div class="pipe-title">启动仿真环境</div><div class="pipe-desc">docker run — 带 ARM64 修复参数</div></div></div>
-  <div class="pipe-step"><div class="pipe-num">5</div><div class="pipe-content"><div class="pipe-title">验证环境</div><div class="pipe-desc">检查 CUDA、列出可用任务</div></div></div>
-  <div class="pipe-step"><div class="pipe-num">6</div><div class="pipe-content"><div class="pipe-title">遥操作采集数据</div><div class="pipe-desc">键盘/手柄操控机械臂、录制数据集</div></div></div>
-  <div class="pipe-step"><div class="pipe-num">7</div><div class="pipe-content"><div class="pipe-title">上传数据集</div><div class="pipe-desc">推送到 HuggingFace Hub</div></div></div>
-  <div class="pipe-step"><div class="pipe-num">8</div><div class="pipe-content"><div class="pipe-title">训练策略模型</div><div class="pipe-desc">GR00T N1.6 微调视觉语言动作模型</div></div></div>
-  <div class="pipe-step"><div class="pipe-num">9</div><div class="pipe-content"><div class="pipe-title">部署到真机</div><div class="pipe-desc">启动推理服务、连接 SO-101 执行</div></div></div>
-</div>
+<section id="architecture">
+<h2>Architecture</h2>
+<pre><code>┌───────────────────────────────────────────────────────────────┐
+│                     DGX Spark (ARM64)                         │
+│                                                               │
+│  ┌────────────────────┐      ┌────────────────────────────┐   │
+│  │  Sim Container     │      │  Real Robot Container      │   │
+│  │  (teleop-docker)   │      │  (real-robot)              │   │
+│  │                    │      │                            │   │
+│  │  Isaac Sim         │      │  GR00T Policy Server       │   │
+│  │  Isaac Lab         │      │  SO-101 Hardware Control   │   │
+│  │  LeRobot           │      │  Feetech Servo SDK         │   │
+│  │                    │      │                            │   │
+│  │  Teleoperation  ───┼──────┼──▶ Policy Inference        │   │
+│  │  Data Recording    │      │   Action Execution         │   │
+│  └────────────────────┘      └────────────────────────────┘   │
+│           │                              │                    │
+│           ▼                              ▼                    │
+│     HuggingFace Hub              Real SO-101 Robot            │
+└───────────────────────────────────────────────────────────────┘</code></pre>
 </section>
 
 <!-- Step 1 -->
 <section id="step1">
-<h2><span class="step-badge">1</span> 准备工作</h2>
-<div class="card tip"><div class="card-label tip">提示</div>所有 ARM64 兼容性修复和 Python 包结构修复已内置在本仓库的 Dockerfile 和代码中，直接照做即可。</div>
+<div class="step-header"><span class="step-num">1</span><h2>Clone and prepare</h2></div>
 
-<h3>1.1 克隆代码</h3>
-<pre><code>cd ~
-git clone &lt;仓库地址&gt; xlerobot-sim2real
-cd ~/xlerobot-sim2real</code></pre>
+<div class="tip"><strong>Note</strong> All ARM64 compatibility fixes are already applied in this repository. You do not need to modify any Dockerfile manually.</div>
 
-<h3>1.2 创建 Isaac Sim 缓存目录</h3>
+<h3>Clone</h3>
+<pre><code>git clone https://github.com/Lakesenberg/xlerobot_sim2real_isaacsim.git
+cd xlerobot_sim2real_isaacsim
+git checkout Sim-to-Real-SO-101-Workshop</code></pre>
+
+<h3>Create Isaac Sim cache directories</h3>
+<p>These directories are mounted into the container so that shader compilation caches, pip downloads, and logs persist between container restarts.</p>
 <pre><code>mkdir -p ~/docker/isaac-sim/cache/{kit,ov,pip,glcache,computecache}
 mkdir -p ~/docker/isaac-sim/{logs,data,documents}</code></pre>
-<div class="explain">Docker 容器关闭后内部数据丢失。挂载缓存到主机后，Isaac Sim 下次启动不用重新编译着色器。</div>
 
-<h3>1.3 创建输出和数据集目录</h3>
-<pre><code>mkdir -p ~/xlerobot-sim2real/Sim-to-Real-SO-101-Workshop-main/outputs
-mkdir -p ~/xlerobot-sim2real/Sim-to-Real-SO-101-Workshop-main/datasets</code></pre>
+<h3>Create output directories</h3>
+<pre><code>mkdir -p outputs datasets</code></pre>
 
-<h3>1.4 配置机器人端口（有真机时）</h3>
-<pre><code><span class="c"># 编辑机器人配置文件</span>
-nano ~/xlerobot-sim2real/Sim-to-Real-SO-101-Workshop-main/docker/env</code></pre>
+<h3>Configure robot ports (real robot only)</h3>
+<p>If you have physical SO-101 hardware, edit <code>docker/env</code> with your USB port and camera device numbers:</p>
 <details>
-<summary>docker/env 文件内容</summary>
-<div class="detail-body">
+<summary>docker/env file reference</summary>
+<div class="details-body">
 <pre><code>export LEROBOT_CALIB=.cache/huggingface/lerobot/calibration
-export TELEOP_PORT=/dev/ttyACM1    <span class="c"># 领导臂 USB 端口</span>
-export ROBOT_PORT=/dev/ttyACM0     <span class="c"># 被控臂 USB 端口</span>
-export TELEOP_ID=orange_teleop     <span class="c"># 领导臂标识名</span>
-export ROBOT_ID=orange_robot       <span class="c"># 被控臂标识名</span>
-export CAMERA_GRIPPER=0            <span class="c"># 夹爪摄像头编号</span>
-export CAMERA_EXTERNAL=4           <span class="c"># 外部摄像头编号</span></code></pre>
+export TELEOP_PORT=/dev/ttyACM1    <span class="cmt"># Leader arm USB port</span>
+export ROBOT_PORT=/dev/ttyACM0     <span class="cmt"># Follower arm USB port</span>
+export TELEOP_ID=orange_teleop     <span class="cmt"># Leader arm identifier</span>
+export ROBOT_ID=orange_robot       <span class="cmt"># Follower arm identifier</span>
+export CAMERA_GRIPPER=0            <span class="cmt"># Gripper camera device index</span>
+export CAMERA_EXTERNAL=4           <span class="cmt"># External camera device index</span></code></pre>
 </div>
 </details>
-<div class="explain">只做仿真不碰真机？跳过这步，用默认值即可。</div>
 </section>
 
 <!-- Step 2 -->
 <section id="step2">
-<h2><span class="step-badge">2</span> 构建仿真容器</h2>
+<div class="step-header"><span class="step-num">2</span><h2>Build the simulation container</h2></div>
+
+<p>The simulation container bundles Isaac Sim, Isaac Lab, and LeRobot into a single Docker image. The ARM64-patched Dockerfiles handle all platform-specific dependency issues automatically.</p>
 
 <div class="vtabs" data-group="build-sim">
-  <div class="vtab active" data-tab="n17">N1.7<span class="tag new">NEW</span></div>
-  <div class="vtab" data-tab="n16">N1.6</div>
+<div class="vtab active" data-tab="n17">N1.7 <span class="badge">latest</span></div>
+<div class="vtab" data-tab="n16">N1.6</div>
 </div>
 <div class="vpanel active" data-group="build-sim" data-tab="n17">
-<table>
-<tr><th>组件</th><th>版本</th></tr>
-<tr><td>Isaac Sim</td><td>6 beta</td></tr>
-<tr><td>Isaac Lab</td><td>3.0.0-beta1</td></tr>
-<tr><td>LeRobot</td><td>0.5.2+ (d656da8)</td></tr>
-<tr><td>Python</td><td>3.12</td></tr>
-<tr><td>PyTorch</td><td>2.10.0 + CUDA</td></tr>
-</table>
-<pre><code>cd ~/xlerobot-sim2real/Sim-to-Real-SO-101-Workshop-main
-
-<span class="c"># 一键构建两个容器</span>
+<pre><code><span class="cmt"># Build both containers (sim + real) in one command</span>
 ./build_n17_arm64.sh
 
-<span class="c"># 或只构建仿真容器</span>
+<span class="cmt"># Or build only the simulation container</span>
 docker build -t teleop-docker:n17 -f docker/sim/Dockerfile.n17.arm64 .</code></pre>
+<p>Base image: <code>nvcr.io/nvidia/isaac-lab:3.0.0-beta1</code> (Isaac Sim 6 beta, Python 3.12)</p>
 </div>
 <div class="vpanel" data-group="build-sim" data-tab="n16">
-<table>
-<tr><th>组件</th><th>版本</th></tr>
-<tr><td>Isaac Sim</td><td>4.5+</td></tr>
-<tr><td>Isaac Lab</td><td>2.3.2</td></tr>
-<tr><td>LeRobot</td><td>0.4.3 (e670ac5)</td></tr>
-<tr><td>Python</td><td>3.10 (内置)</td></tr>
-<tr><td>PyTorch</td><td>2.7.0 + CUDA</td></tr>
-</table>
-<pre><code>cd ~/xlerobot-sim2real/Sim-to-Real-SO-101-Workshop-main
-
+<pre><code><span class="cmt"># Build both containers (sim + real) in one command</span>
 ./build_arm64.sh
 
-<span class="c"># 或只构建仿真容器</span>
+<span class="cmt"># Or build only the simulation container</span>
 docker build -t teleop-docker -f docker/sim/Dockerfile.arm64 .</code></pre>
+<p>Base image: <code>nvcr.io/nvidia/isaac-lab:2.3.2</code> (Isaac Sim 4.5+, Python 3.10)</p>
 </div>
-<div class="explain">首次构建约 <strong>20-40 分钟</strong>（取决于网络速度）</div>
+
+<div class="note"><strong>Build time</strong> First build takes approximately 20–40 minutes depending on network speed. The base image alone is ~15 GB.</div>
 </section>
 
 <!-- Step 3 -->
 <section id="step3">
-<h2><span class="step-badge">3</span> 构建真机容器</h2>
-<div class="card warn"><div class="card-label warn">注意</div>只做仿真？跳过这一步。</div>
+<div class="step-header"><span class="step-num">3</span><h2>Build the real robot container</h2></div>
+
+<div class="warn"><strong>Simulation only?</strong> Skip this step. You only need the real robot container if you have physical SO-101 hardware.</div>
+
+<p>The real robot container includes the GR00T policy inference server, Feetech servo SDK, and calibration tools.</p>
 
 <div class="vtabs" data-group="build-real">
-  <div class="vtab active" data-tab="n17">N1.7<span class="tag new">NEW</span></div>
-  <div class="vtab" data-tab="n16">N1.6</div>
+<div class="vtab active" data-tab="n17">N1.7 <span class="badge">latest</span></div>
+<div class="vtab" data-tab="n16">N1.6</div>
 </div>
 <div class="vpanel active" data-group="build-real" data-tab="n17">
-<pre><code>cd ~/xlerobot-sim2real/Sim-to-Real-SO-101-Workshop-main
-
-docker build -t real-robot:n17 -f docker/real/Dockerfile.n17.blackwell.arm64 .</code></pre>
-<div class="explain">CUDA 13.2.2 / Python 3.12 / GR00T N1.7 (4b1dca9)</div>
+<pre><code>docker build -t real-robot:n17 -f docker/real/Dockerfile.n17.blackwell.arm64 .</code></pre>
+<p>Base: <code>nvidia/cuda:13.2.2-devel-ubuntu24.04</code>, Python 3.12, GR00T N1.7</p>
 </div>
 <div class="vpanel" data-group="build-real" data-tab="n16">
-<pre><code>cd ~/xlerobot-sim2real/Sim-to-Real-SO-101-Workshop-main
-
-docker build -t real-robot -f docker/real/Dockerfile.blackwell.arm64 .</code></pre>
-<div class="explain">CUDA 13.0 / Python 3.10 / GR00T N1.6 (ead5283)</div>
+<pre><code>docker build -t real-robot -f docker/real/Dockerfile.blackwell.arm64 .</code></pre>
+<p>Base: <code>nvidia/cuda:13.0.0-devel-ubuntu24.04</code>, Python 3.10, GR00T N1.6</p>
 </div>
-<div class="explain">构建约 <strong>30-60 分钟</strong>，flash-attn 编译最耗时。</div>
+
+<div class="note"><strong>Build time</strong> Approximately 30–60 minutes. The <code>flash-attn</code> compilation step is the slowest (limited to <code>MAX_JOBS=2</code> to avoid OOM).</div>
 </section>
 
 <!-- Step 4 -->
 <section id="step4">
-<h2><span class="step-badge">4</span> 启动仿真环境</h2>
+<div class="step-header"><span class="step-num">4</span><h2>Launch the simulation</h2></div>
 
-<h3>方式一：一键脚本（推荐）</h3>
 <div class="vtabs" data-group="run-sim">
-  <div class="vtab active" data-tab="n17">N1.7</div>
-  <div class="vtab" data-tab="n16">N1.6</div>
+<div class="vtab active" data-tab="n17">N1.7</div>
+<div class="vtab" data-tab="n16">N1.6</div>
 </div>
 <div class="vpanel active" data-group="run-sim" data-tab="n17">
-<pre><code>cd ~/xlerobot-sim2real/Sim-to-Real-SO-101-Workshop-main
-./run_teleop_n17_arm64.sh</code></pre>
+<pre><code>./run_teleop_n17_arm64.sh</code></pre>
 </div>
 <div class="vpanel" data-group="run-sim" data-tab="n16">
-<pre><code>cd ~/xlerobot-sim2real/Sim-to-Real-SO-101-Workshop-main
-./run_teleop_arm64.sh</code></pre>
+<pre><code>./run_teleop_arm64.sh</code></pre>
 </div>
 
-<h3>方式二：手动完整命令</h3>
-<details>
-<summary>展开完整 docker run 命令及逐行解释</summary>
-<div class="detail-body">
-<pre><code>xhost +                <span class="c"># 允许容器访问显示器</span>
-PROJECT_ROOT="$(cd .. && pwd)"
+<p>The launch script handles all ARM64-specific environment variables (<code>LD_PRELOAD</code>, <code>GLIBC_TUNABLES</code>), X11 forwarding, GPU passthrough, and volume mounts automatically.</p>
 
-docker run --name teleop -it --privileged --gpus all \
-  -e "ACCEPT_EULA=Y" \                        <span class="c"># 接受 NVIDIA 许可协议</span>
-  -e "PRIVACY_CONSENT=Y" \                     <span class="c"># 接受隐私政策</span>
-  -e DISPLAY \                                 <span class="c"># GUI 窗口显示</span>
-  -e LD_PRELOAD=/usr/lib/aarch64-linux-gnu/libgomp.so.1 \  <span class="c"># ARM64 TLS 修复</span>
-  -e GLIBC_TUNABLES=glibc.rtld.optional_static_tls=2048 \  <span class="c"># ARM64 TLS 修复</span>
-  --rm --network=host \
-  -v /dev:/dev \                               <span class="c"># USB 设备访问</span>
-  -v /run/udev:/run/udev:ro \
-  -v "$HOME/.Xauthority:/root/.Xauthority" \   <span class="c"># X11 认证</span>
-  -v "$HOME/docker/isaac-sim/cache/kit:/isaac-sim/kit/cache:rw" \
-  -v "$HOME/docker/isaac-sim/cache/ov:/root/.cache/ov:rw" \
-  -v "$HOME/docker/isaac-sim/cache/pip:/root/.cache/pip:rw" \
-  -v "$HOME/docker/isaac-sim/cache/glcache:/root/.cache/nvidia/GLCache:rw" \
-  -v "$HOME/docker/isaac-sim/cache/computecache:/root/.nv/ComputeCache:rw" \
-  -v "$HOME/docker/isaac-sim/logs:/root/.nvidia-omniverse/logs:rw" \
-  -v "$HOME/docker/isaac-sim/data:/root/.local/share/ov/data:rw" \
-  -v "$HOME/docker/isaac-sim/documents:/root/Documents:rw" \
-  -v "$HOME/.cache/huggingface/lerobot/calibration:/root/.cache/huggingface/lerobot/calibration" \
-  -v "$(pwd)/docker/env:/root/env" \
-  -v "$(pwd)/source:/workspace/Sim-to-Real-SO-101-Workshop/source" \
-  -v "$(pwd)/outputs:/workspace/Sim-to-Real-SO-101-Workshop/outputs" \
-  -v "$(pwd)/datasets:/workspace/Sim-to-Real-SO-101-Workshop/datasets" \
-  -v "$PROJECT_ROOT/source/xlerobot_tasks:/workspace/xlerobot_tasks" \   <span class="c"># XLeRobot 源码</span>
-  -v "$PROJECT_ROOT/assets:/workspace/xlerobot_assets" \                 <span class="c"># 3D 模型</span>
-  -e XLEROBOT_ASSETS_ROOT=/workspace/xlerobot_assets \                   <span class="c"># 资产路径</span>
-  teleop-docker:latest</code></pre>
+<details>
+<summary>What the launch script does</summary>
+<div class="details-body">
+<p>The script runs <code>docker run</code> with these ARM64-critical flags:</p>
+<table>
+<tr><th>Flag</th><th>Purpose</th></tr>
+<tr><td><code>-e LD_PRELOAD=...libgomp.so.1</code></td><td>Pre-loads OpenMP runtime to ensure TLS allocation succeeds</td></tr>
+<tr><td><code>-e GLIBC_TUNABLES=...tls=2048</code></td><td>Expands static TLS region for Isaac Sim's many shared libraries</td></tr>
+<tr><td><code>--privileged --gpus all</code></td><td>Full GPU and USB device access</td></tr>
+<tr><td><code>-v .../cache/kit:...</code></td><td>Persists shader compilation cache between restarts</td></tr>
+<tr><td><code>-v $(pwd)/source:...</code></td><td>Mounts source code for live editing</td></tr>
+</table>
+<p>The container entrypoint automatically runs <code>pip install -e</code> on the <code>sim_to_real_so101</code> package.</p>
 </div>
 </details>
-<div class="explain">容器启动后 <code>entrypoint.sh</code> 自动安装 <code>sim_to_real_so101</code> 和 <code>xlerobot_tasks</code>，无需手动操作。</div>
 </section>
 
 <!-- Step 5 -->
 <section id="step5">
-<h2><span class="step-badge">5</span> 验证环境</h2>
-<pre><code><span class="c"># 检查 CUDA（期望: CUDA: True, Device: NVIDIA ...）</span>
-python -c "import torch; print(f'CUDA: {torch.cuda.is_available()}, Device: {torch.cuda.get_device_name(0)}')"
+<div class="step-header"><span class="step-num">5</span><h2>Verify the environment</h2></div>
 
-<span class="c"># 列出所有可用仿真任务</span>
-list_envs
+<p>Inside the container, run these checks:</p>
 
-<span class="c"># 用零动作测试环境能否启动</span>
-zero_agent --task Lerobot-So101-Teleop-Vials-To-Rack --num_envs 1 --enable_cameras
+<h3>Check CUDA</h3>
+<pre><code>python -c "import torch; print(f'CUDA: {torch.cuda.is_available()}, Device: {torch.cuda.get_device_name(0)}')"</code></pre>
+<p>Expected: <code>CUDA: True, Device: NVIDIA ...</code></p>
 
-<span class="c"># 用随机动作测试</span>
-random_agent --task Lerobot-So101-Teleop-Vials-To-Rack --num_envs 1 --enable_cameras</code></pre>
+<h3>List available environments</h3>
+<pre><code>list_envs</code></pre>
+
+<h3>Test with zero actions</h3>
+<pre><code>zero_agent --task Lerobot-So101-Teleop-Vials-To-Rack --num_envs 1 --enable_cameras</code></pre>
+<p>You should see the Isaac Sim GUI with a SO-101 arm, a table with vials, and a yellow rack. Press <code>Ctrl+C</code> to exit.</p>
+
+<h3>Test with random actions</h3>
+<pre><code>random_agent --task Lerobot-So101-Teleop-Vials-To-Rack --num_envs 1 --enable_cameras</code></pre>
 </section>
 
 <!-- Step 6 -->
 <section id="step6">
-<h2><span class="step-badge">6</span> 遥操作采集数据</h2>
+<div class="step-header"><span class="step-num">6</span><h2>Collect teleoperation data</h2></div>
 
-<h3>SO-101 单臂（主任务，带域随机化）</h3>
+<p>Use keyboard teleoperation to control the simulated SO-101 arm and record demonstrations. The recorded data is saved in LeRobot dataset format.</p>
+
+<h3>Start teleoperation with recording</h3>
 <pre><code>lerobot_agent \
   --task Lerobot-So101-Teleop-Vials-To-Rack-DR \
   --num_envs 1 \
   --enable_cameras \
-  --repo_id &lt;你的HF用户名&gt;/so101-vials-sim-dr</code></pre>
-<div class="explain">
-按 <span class="key">B</span> 开始录制 → 操控抓试管放架子 → <span class="key">N</span> 标记成功 → <span class="key">R</span> 重置失败 → 采集 50-100 个 episode → <span class="key">Ctrl</span>+<span class="key">C</span> 结束
-</div>
+  --repo_id &lt;your-hf-username&gt;/so101-vials-sim-dr</code></pre>
 
-<h3>XLeRobot 双臂遥操作</h3>
-<pre><code><span class="c"># 键盘</span>
-python scripts/teleop_xlerobot.py --enable_cameras --num_envs 1 --task XLeRobot-v0
+<p>The <code>-DR</code> variant enables <strong>domain randomization</strong> (lighting, colors, camera angles), which significantly improves sim-to-real transfer.</p>
 
-<span class="c"># 抬方块</span>
-python scripts/teleop_xlerobot.py --enable_cameras --num_envs 1 --task XLeRobot-LiftCube-v0
+<h3>Recording workflow</h3>
+<ol>
+<li>Press <span class="kbd">B</span> to begin recording</li>
+<li>Use keyboard controls to pick up a vial and place it in the yellow rack</li>
+<li>Press <span class="kbd">N</span> when the task succeeds (resets the scene)</li>
+<li>Press <span class="kbd">R</span> if you fail (resets without saving)</li>
+<li>Repeat for 50–100 successful episodes</li>
+<li>Press <code>Ctrl+C</code> to stop</li>
+</ol>
 
-<span class="c"># Xbox 手柄</span>
-python scripts/teleop_xlerobot.py --enable_cameras --num_envs 1 --task XLeRobot-v0 --teleop_device xlerobot-gamepad</code></pre>
+<div class="tip"><strong>Data quality tip</strong> More demonstrations with diverse strategies produce better policies. Aim for at least 50 successful episodes. With domain randomization enabled, even 50 episodes can yield reasonable real-world transfer.</div>
 </section>
 
 <!-- Step 7 -->
 <section id="step7">
-<h2><span class="step-badge">7</span> 上传数据集</h2>
-<pre><code><span class="c"># 先登录 HuggingFace</span>
+<div class="step-header"><span class="step-num">7</span><h2>Push dataset to HuggingFace</h2></div>
+
+<pre><code><span class="cmt"># Login to HuggingFace (first time only)</span>
 huggingface-cli login
 
-<span class="c"># 上传</span>
-lerobot_push_dataset --repo_id &lt;你的HF用户名&gt;/so101-vials-sim-dr</code></pre>
+<span class="cmt"># Push the recorded dataset</span>
+lerobot_push_dataset --repo_id &lt;your-hf-username&gt;/so101-vials-sim-dr</code></pre>
 </section>
 
 <!-- Step 8 -->
 <section id="step8">
-<h2><span class="step-badge">8</span> 训练 GR00T</h2>
-<div class="card tip"><div class="card-label tip">注意</div>这一步在 DGX Spark 主机上操作，不在 Docker 容器里。</div>
+<div class="step-header"><span class="step-num">8</span><h2>Train a GR00T policy</h2></div>
+
+<div class="warn"><strong>Run on the host</strong> This step runs on the DGX Spark host machine, not inside a Docker container. You need conda installed.</div>
 
 <div class="vtabs" data-group="train">
-  <div class="vtab active" data-tab="n17">N1.7<span class="tag new">NEW</span></div>
-  <div class="vtab" data-tab="n16">N1.6</div>
+<div class="vtab active" data-tab="n17">N1.7 <span class="badge">latest</span></div>
+<div class="vtab" data-tab="n16">N1.6</div>
 </div>
 <div class="vpanel active" data-group="train" data-tab="n17">
-<pre><code><span class="c"># N1.7 支持 Python 3.12（DGX Spark 自带）</span>
+<pre><code><span class="cmt"># N1.7 supports Python 3.12 (ships with Ubuntu 24.04)</span>
 conda create -n gr00t python=3.12 -y
 conda activate gr00t
 
-<span class="c"># 克隆 GR00T N1.7</span>
+<span class="cmt"># Clone GR00T N1.7</span>
 git clone https://github.com/NVIDIA/Isaac-GR00T.git ~/Isaac-GR00T
 cd ~/Isaac-GR00T
 git checkout 4b1dca9d88d2a0b9ea5a65aa61c82ff89f5c4f0e
 
-<span class="c"># 安装 GR00T（N1.7 的 torchcodec 已支持 ARM64 PyPI）</span>
-pip install -e .
-
-<span class="c"># 开始训练</span>
-python scripts/train.py \
-  --dataset_repo_id &lt;你的HF用户名&gt;/so101-vials-sim-dr \
-  --num_epochs 50 \
-  --batch_size 32 \
-  --output_dir ~/sim2real/models/groot-so101-vials</code></pre>
+<span class="cmt"># Install</span>
+pip install -e .</code></pre>
 </div>
 <div class="vpanel" data-group="train" data-tab="n16">
-<pre><code><span class="c"># N1.6 需要 Python 3.10（DGX Spark 自带 3.13 不兼容）</span>
+<pre><code><span class="cmt"># N1.6 requires Python 3.10 (DGX Spark ships 3.13, which is incompatible)</span>
 conda create -n gr00t python=3.10 -y
 conda activate gr00t
 
-<span class="c"># 克隆 GR00T N1.6</span>
+<span class="cmt"># Clone GR00T N1.6</span>
 git clone https://github.com/NVIDIA/Isaac-GR00T.git ~/Isaac-GR00T
 cd ~/Isaac-GR00T
 
-<span class="c"># 安装 ARM64 专用 torchcodec wheel（PyPI 上没有）</span>
+<span class="cmt"># Install the bundled ARM64 torchcodec wheel (not available on PyPI)</span>
 pip install scripts/deployment/dgpu/wheels/torchcodec-0.10.0a0-cp310-cp310-linux_aarch64.whl
 
-<span class="c"># 安装 GR00T</span>
-pip install -e .
+<span class="cmt"># Install</span>
+pip install -e .</code></pre>
+</div>
 
-<span class="c"># 开始训练</span>
-python scripts/train.py \
-  --dataset_repo_id &lt;你的HF用户名&gt;/so101-vials-sim-dr \
+<h3>Fine-tune on your dataset</h3>
+<pre><code>python scripts/train.py \
+  --dataset_repo_id &lt;your-hf-username&gt;/so101-vials-sim-dr \
   --num_epochs 50 \
   --batch_size 32 \
   --output_dir ~/sim2real/models/groot-so101-vials</code></pre>
-</div>
+
+<p>Training takes approximately 1–4 hours depending on dataset size. The DGX Spark's 92 GB unified memory allows batch sizes of 32 or higher.</p>
 </section>
 
 <!-- Step 9 -->
 <section id="step9">
-<h2><span class="step-badge">9</span> 部署到真机</h2>
+<div class="step-header"><span class="step-num">9</span><h2>Deploy to real SO-101</h2></div>
 
-<h3>9.1 启动真机容器</h3>
-<pre><code>cd ~/xlerobot-sim2real/Sim-to-Real-SO-101-Workshop-main
-./run_real_robot_arm64.sh</code></pre>
+<h3>9.1 Launch the real robot container</h3>
+<div class="vtabs" data-group="run-real">
+<div class="vtab active" data-tab="n17">N1.7</div>
+<div class="vtab" data-tab="n16">N1.6</div>
+</div>
+<div class="vpanel active" data-group="run-real" data-tab="n17">
+<pre><code>./run_real_robot_n17_arm64.sh</code></pre>
+</div>
+<div class="vpanel" data-group="run-real" data-tab="n16">
+<pre><code>./run_real_robot_arm64.sh</code></pre>
+</div>
 
-<h3>9.2 校准机械臂</h3>
+<h3>9.2 Calibrate the robot</h3>
 <pre><code>cd /workspace/Isaac-GR00T/gr00t/eval/real_robot/SO100
 
+<span class="cmt"># Run calibration procedure</span>
 python so101_control.py --port /dev/ttyACM0 --id my_robot --calibrate
+
+<span class="cmt"># Verify calibration quality</span>
 python so101_check_calibration.py --id my_robot
+
+<span class="cmt"># Test manual joint control</span>
 python so101_manual_control.py --port /dev/ttyACM0 --id my_robot</code></pre>
 
-<h3>9.3 运行策略推理</h3>
-<pre><code><span class="c"># 终端 1: 启动 GR00T 策略服务器</span>
-cd /Isaac-GR00T
-python scripts/serve.py --model_path /workspace/models/groot-so101-vials
+<h3>9.3 Run policy inference</h3>
+<p>You need two terminals inside the container. Open a second terminal with:</p>
+<pre><code>docker exec -it real-robot /bin/bash</code></pre>
 
-<span class="c"># 终端 2: 运行真机评估</span>
-cd /workspace/Isaac-GR00T/gr00t/eval/real_robot/SO100
+<h4>Terminal 1 — Start the GR00T policy server</h4>
+<pre><code>cd /Isaac-GR00T
+python scripts/serve.py --model_path /workspace/models/groot-so101-vials</code></pre>
+
+<h4>Terminal 2 — Run the robot</h4>
+<pre><code>cd /workspace/Isaac-GR00T/gr00t/eval/real_robot/SO100
 python so101_eval.py \
   --robot_port /dev/ttyACM0 \
   --robot_id my_robot \
@@ -558,276 +482,186 @@ python so101_eval.py \
 </section>
 
 <!-- Environments -->
-<section id="envs">
-<h2>仿真环境列表</h2>
-<h3>SO-101 单臂</h3>
+<section id="environments">
+<h2>Available environments</h2>
+
+<h3>Task environments</h3>
 <table>
-<tr><th>环境名</th><th>用途</th><th>说明</th></tr>
-<tr><td><code>Lerobot-So101-Teleop-Base</code></td><td>调试</td><td>基础遥操作</td></tr>
-<tr><td><code>Lerobot-So101-Teleop-Task</code></td><td>调试</td><td>灯箱 + 摄像头测试</td></tr>
-<tr><td><code>Lerobot-So101-Teleop-Vials-To-Rack</code></td><td><strong>主任务</strong></td><td>抓试管放架子</td></tr>
-<tr><td><code>Lerobot-So101-Teleop-Vials-To-Rack-DR</code></td><td><strong>主任务</strong></td><td>+ 域随机化（推荐）</td></tr>
-<tr><td><code>Lerobot-So101-Teleop-Vials-To-Rack-Eval</code></td><td>评估</td><td>固定外观</td></tr>
-<tr><td><code>Lerobot-So101-Teleop-Vials-To-Rack-DR-Eval</code></td><td>评估</td><td>+ 域随机化</td></tr>
+<tr><th>Environment ID</th><th>Description</th></tr>
+<tr><td><code>Lerobot-So101-Teleop-Vials-To-Rack</code></td><td>Main task — pick up vial, place in yellow rack</td></tr>
+<tr><td><code>Lerobot-So101-Teleop-Vials-To-Rack-DR</code></td><td>Same task with domain randomization (recommended for training)</td></tr>
 </table>
 
-<h3>XLeRobot 双臂</h3>
+<h3>Evaluation environments</h3>
 <table>
-<tr><th>环境名</th><th>说明</th></tr>
-<tr><td><code>XLeRobot-v0</code></td><td>默认空场景（双臂 17 DOF）</td></tr>
-<tr><td><code>XLeRobot-LiftCube-v0</code></td><td>抬起方块</td></tr>
-<tr><td><code>XLeRobot-Loft-v0</code></td><td>阁楼场景</td></tr>
+<tr><th>Environment ID</th><th>Description</th></tr>
+<tr><td><code>Lerobot-So101-Teleop-Vials-To-Rack-Eval</code></td><td>Fixed appearance, no domain randomization</td></tr>
+<tr><td><code>Lerobot-So101-Teleop-Vials-To-Rack-DR-Eval</code></td><td>Full domain randomization</td></tr>
+</table>
+
+<h3>Debug environments</h3>
+<table>
+<tr><th>Environment ID</th><th>Description</th></tr>
+<tr><td><code>Lerobot-So101-Teleop-Base</code></td><td>Basic teleop, no task objects</td></tr>
+<tr><td><code>Lerobot-So101-Teleop-Task</code></td><td>Lightbox + camera testing</td></tr>
+</table>
+
+<h3>CLI commands</h3>
+<table>
+<tr><th>Command</th><th>Description</th></tr>
+<tr><td><code>list_envs</code></td><td>List all registered environments</td></tr>
+<tr><td><code>zero_agent</code></td><td>Run environment with zero actions (debug)</td></tr>
+<tr><td><code>random_agent</code></td><td>Run environment with random actions (debug)</td></tr>
+<tr><td><code>lerobot_agent</code></td><td>Teleoperate and record dataset</td></tr>
+<tr><td><code>lerobot_eval</code></td><td>Evaluate trained policy in simulation</td></tr>
+<tr><td><code>lerobot_push_dataset</code></td><td>Upload dataset to HuggingFace Hub</td></tr>
 </table>
 </section>
 
 <!-- Controls -->
 <section id="controls">
-<h2>操控说明</h2>
+<h2>Teleoperation controls</h2>
 
-<h3>SO-101 键盘</h3>
+<h3>Keyboard</h3>
 <table>
-<tr><th>按键</th><th>作用</th></tr>
-<tr><td><span class="key">B</span></td><td>开始录制</td></tr>
-<tr><td><span class="key">N</span></td><td>标记成功、重置</td></tr>
-<tr><td><span class="key">R</span></td><td>标记失败、重置</td></tr>
-<tr><td><span class="key">W</span> <span class="key">S</span></td><td>前进 / 后退</td></tr>
-<tr><td><span class="key">A</span> <span class="key">D</span></td><td>左移 / 右移</td></tr>
-<tr><td><span class="key">Q</span> <span class="key">E</span></td><td>上升 / 下降</td></tr>
-<tr><td><span class="key">U</span> <span class="key">O</span></td><td>夹爪张开 / 关闭</td></tr>
-</table>
-
-<h3>XLeRobot 键盘</h3>
-<table>
-<tr><th>按键</th><th>作用</th></tr>
-<tr><td><span class="key">W</span><span class="key">S</span> <span class="key">A</span><span class="key">D</span> <span class="key">Q</span><span class="key">E</span></td><td>右臂平移</td></tr>
-<tr><td><span class="key">J</span><span class="key">L</span> <span class="key">K</span><span class="key">I</span></td><td>右臂旋转（偏航/俯仰）</td></tr>
-<tr><td><span class="key">U</span> <span class="key">O</span></td><td>右夹爪</td></tr>
-<tr><td><span class="key">Shift</span> + 上述键</td><td>控制左臂</td></tr>
-<tr><td><span class="key">7</span><span class="key">9</span> <span class="key">8</span><span class="key">0</span></td><td>头部左右 / 上下</td></tr>
-<tr><td><span class="key">↑</span><span class="key">↓</span><span class="key">←</span><span class="key">→</span></td><td>底盘移动</td></tr>
-<tr><td><span class="key">Z</span> <span class="key">X</span></td><td>底盘旋转</td></tr>
-<tr><td><span class="key">1</span><span class="key">2</span><span class="key">3</span></td><td>速度档位</td></tr>
-</table>
-
-<h3>Xbox 手柄</h3>
-<table>
-<tr><th>输入</th><th>作用</th></tr>
-<tr><td>左摇杆</td><td>手臂前后/左右</td></tr>
-<tr><td>右摇杆</td><td>手臂上下 + 偏航</td></tr>
-<tr><td>十字键 上/下</td><td>手臂俯仰</td></tr>
-<tr><td>RT / RB</td><td>夹爪</td></tr>
-<tr><td>LB（按住）</td><td>切换到左臂</td></tr>
-<tr><td>十字键 左/右</td><td>头部左右</td></tr>
-<tr><td>LT（模拟量）</td><td>头部俯仰</td></tr>
+<tr><th>Key</th><th>Action</th></tr>
+<tr><td><span class="kbd">B</span></td><td>Begin recording</td></tr>
+<tr><td><span class="kbd">N</span></td><td>Mark success and reset</td></tr>
+<tr><td><span class="kbd">R</span></td><td>Mark failure and reset</td></tr>
+<tr><td><span class="kbd">W</span> / <span class="kbd">S</span></td><td>Forward / backward</td></tr>
+<tr><td><span class="kbd">A</span> / <span class="kbd">D</span></td><td>Left / right</td></tr>
+<tr><td><span class="kbd">Q</span> / <span class="kbd">E</span></td><td>Up / down</td></tr>
+<tr><td><span class="kbd">U</span> / <span class="kbd">O</span></td><td>Gripper open / close</td></tr>
 </table>
 </section>
 
-<!-- Fixes -->
-<section id="fixes">
-<h2>修复清单</h2>
-<p style="color:var(--muted);margin-bottom:16px">所有修复已内置在代码中。详见 <code>docs/FIXES.md</code>。</p>
+<!-- ARM64 Fixes -->
+<section id="arm64-fixes">
+<h2>ARM64 fixes applied</h2>
+<p>The following fixes are already applied in the ARM64 Dockerfiles. This section is for reference only.</p>
 
-<h3>ARM64 平台修复</h3>
 <table>
-<tr><th>#</th><th>问题</th><th>N1.6</th><th>N1.7</th></tr>
-<tr><td>1</td><td><code>torchcodec</code> 版本不存在</td><td>pin &gt;=0.11.0</td><td>pin &gt;=0.10.0 (已有 ARM64)</td></tr>
-<tr><td>2</td><td>CUDA PyTorch 被 CPU 版替换</td><td colspan="2">动态捕获基础镜像版本（两版通用）</td></tr>
-<tr><td>3</td><td><code>triton</code> 版本不存在</td><td colspan="2">从 pyproject.toml 删除（两版通用）</td></tr>
-<tr><td>4</td><td>TLS 内存不足崩溃</td><td colspan="2">LD_PRELOAD + GLIBC_TUNABLES（两版通用）</td></tr>
-<tr><td>5</td><td>FFmpeg 架构错误</td><td colspan="2">使用 linuxarm64 构建（两版通用）</td></tr>
-<tr><td>6</td><td>GR00T Python 版本</td><td>需要 3.10 + 隐藏 wheel</td><td>支持 3.12，无需额外 wheel</td></tr>
-</table>
-
-<h3>Python 包结构修复</h3>
-<table>
-<tr><th>#</th><th>问题</th><th>修复位置</th></tr>
-<tr><td>7</td><td><code>xlerobot_tasks.assets</code> 模块缺失</td><td>新建 assets/*.py</td></tr>
-<tr><td>8</td><td>setup.py 只声明顶层包</td><td>改用 find_packages()</td></tr>
-<tr><td>9</td><td><code>sim_to_real_so101</code> 缺少 __init__.py</td><td>新建 __init__.py</td></tr>
-<tr><td>10</td><td><code>scripts/</code> 缺少 __init__.py</td><td>新建 __init__.py</td></tr>
-<tr><td>11</td><td>requires-python &gt;= 3.11 过严</td><td>改为 &gt;= 3.10</td></tr>
-<tr><td>12</td><td>容器内找不到 XLeRobot</td><td>run_teleop_arm64.sh + entrypoint.sh</td></tr>
+<tr><th>#</th><th>Issue</th><th>Fix</th><th>File</th></tr>
+<tr><td>1</td><td><code>torchcodec</code> version not found on ARM64 PyPI</td><td>Pin compatible version range</td><td><code>Dockerfile.arm64</code></td></tr>
+<tr><td>2</td><td>pip silently replaces CUDA PyTorch with CPU-only wheel</td><td>Dynamically capture version from base image</td><td><code>Dockerfile.arm64</code></td></tr>
+<tr><td>3</td><td><code>triton</code> version not available for aarch64</td><td>Remove from pyproject.toml</td><td><code>Dockerfile.*.arm64</code></td></tr>
+<tr><td>4</td><td><code>cannot allocate memory in static TLS block</code></td><td><code>LD_PRELOAD</code> + <code>GLIBC_TUNABLES</code></td><td><code>run_*_arm64.sh</code></td></tr>
+<tr><td>5</td><td>FFmpeg binary is x86_64, not ARM64</td><td>Download <code>linuxarm64</code> build</td><td><code>Dockerfile.arm64</code></td></tr>
+<tr><td>6</td><td>GR00T requires specific Python + hidden wheel</td><td>N1.6: Python 3.10 + bundled wheel; N1.7: Python 3.12</td><td><code>Dockerfile.*.arm64</code></td></tr>
+<tr><td>7</td><td><code>sim_to_real_so101</code> missing <code>__init__.py</code></td><td>Created package root <code>__init__.py</code></td><td><code>source/</code></td></tr>
+<tr><td>8</td><td><code>scripts/</code> missing <code>__init__.py</code> (entry points fail)</td><td>Created <code>scripts/__init__.py</code></td><td><code>source/</code></td></tr>
+<tr><td>9</td><td><code>requires-python >= 3.11</code> blocks Python 3.10</td><td>Changed to <code>>= 3.10</code></td><td><code>pyproject.toml</code></td></tr>
 </table>
 </section>
 
 <!-- Troubleshooting -->
-<section id="trouble">
-<h2>常见报错</h2>
+<section id="troubleshooting">
+<h2>Troubleshooting</h2>
 
-<div class="trouble-row">
-<div class="trouble-err">cannot allocate memory in static TLS block</div>
-<div class="trouble-cause">原因：ARM64 TLS 空间不足</div>
-<div class="trouble-fix">解决：加 <code>LD_PRELOAD</code> 和 <code>GLIBC_TUNABLES</code> 环境变量（脚本已自动配置）</div>
-</div>
+<h3><code>cannot allocate memory in static TLS block</code></h3>
+<p>The ARM64 dynamic linker's static TLS region is too small for Isaac Sim. Use the launch scripts (<code>./run_teleop_*_arm64.sh</code>) which set <code>LD_PRELOAD</code> and <code>GLIBC_TUNABLES</code> automatically.</p>
 
-<div class="trouble-row">
-<div class="trouble-err">torch.cuda.is_available() 返回 False</div>
-<div class="trouble-cause">原因：CUDA PyTorch 被 CPU 版替换</div>
-<div class="trouble-fix">解决：使用 Dockerfile.arm64 重新构建</div>
-</div>
+<h3><code>torch.cuda.is_available()</code> returns <code>False</code></h3>
+<p>pip replaced NVIDIA's CUDA-enabled PyTorch with a CPU-only wheel during the Docker build. Rebuild using the ARM64 Dockerfile, which dynamically captures the base image's PyTorch version.</p>
 
-<div class="trouble-row">
-<div class="trouble-err">No matching distribution found for torchcodec</div>
-<div class="trouble-cause">原因：ARM64 包版本不同</div>
-<div class="trouble-fix">解决：已在 Dockerfile.arm64 中修复</div>
-</div>
+<h3><code>No matching distribution found for torchcodec</code></h3>
+<p>ARM64 PyPI has different version ranges than x86_64. The ARM64 Dockerfiles already pin compatible versions.</p>
 
-<div class="trouble-row">
-<div class="trouble-err">ImportError: xlerobot_tasks.assets.xlerobot</div>
-<div class="trouble-cause">原因：原仓库缺少 assets 模块</div>
-<div class="trouble-fix">解决：本仓库已新建；确认用的是修复版代码</div>
-</div>
+<h3><code>ModuleNotFoundError: No module named 'sim_to_real_so101'</code></h3>
+<p>The package was missing <code>__init__.py</code> at the root level. This is fixed in this repository. Verify the file exists:</p>
+<pre><code>ls source/sim_to_real_so101/__init__.py</code></pre>
 
-<div class="trouble-row">
-<div class="trouble-err">ModuleNotFoundError: sim_to_real_so101</div>
-<div class="trouble-cause">原因：缺少 __init__.py</div>
-<div class="trouble-fix">解决：本仓库已新建 __init__.py</div>
-</div>
+<h3>Isaac Sim takes more than 5 minutes to start</h3>
+<p>Normal on first launch — it is compiling shaders. The cache mount ensures subsequent starts are much faster.</p>
 
-<div class="trouble-row">
-<div class="trouble-err">import xlerobot_tasks 失败（容器内）</div>
-<div class="trouble-cause">原因：容器没挂载 xlerobot_tasks</div>
-<div class="trouble-fix">解决：使用 <code>./run_teleop_arm64.sh</code> 启动（自动挂载）</div>
-</div>
+<h3>No GUI window appears</h3>
+<p>Make sure you ran <code>xhost +</code> before launching the container. The launch scripts do this automatically.</p>
 
-<div class="trouble-row">
-<div class="trouble-err">Isaac Sim 启动很慢（>5 分钟）</div>
-<div class="trouble-cause">原因：首次需编译着色器</div>
-<div class="trouble-fix">解决：正常现象，缓存挂载后第二次会快很多</div>
-</div>
-
-<div class="trouble-row">
-<div class="trouble-err">没有 GUI 窗口弹出</div>
-<div class="trouble-cause">原因：X11 转发没配置</div>
-<div class="trouble-fix">解决：确认运行了 <code>xhost +</code> 并传入了 <code>-e DISPLAY</code></div>
-</div>
+<h3>GR00T install fails with Python 3.12+ (N1.6 only)</h3>
+<p>GR00T N1.6 requires Python 3.10. Use <code>conda create -n gr00t python=3.10</code>. GR00T N1.7 supports Python 3.12.</p>
 </section>
 
 <!-- Project Structure -->
-<section id="structure">
-<h2>项目目录结构</h2>
-<div class="tree"><span class="dir">xlerobot-sim2real/</span>
-├── README.md
-├── GUIDE_CN.md
-├── index.html                              <span class="cmt"># 本页面</span>
-├── isaac sim lerobot.gif
+<section id="project-structure">
+<h2>Project structure</h2>
+
+<div class="file-tree"><span class="dir">Sim-to-Real-SO-101-Workshop/</span>
+├── <span class="new">build_arm64.sh</span>                       <span class="cmt"># N1.6 one-click build</span>
+├── <span class="new">build_n17_arm64.sh</span>                   <span class="cmt"># N1.7 one-click build</span>
+├── <span class="new">run_teleop_arm64.sh</span>                  <span class="cmt"># N1.6 launch sim</span>
+├── <span class="new">run_teleop_n17_arm64.sh</span>              <span class="cmt"># N1.7 launch sim</span>
+├── <span class="new">run_real_robot_arm64.sh</span>              <span class="cmt"># N1.6 launch real</span>
+├── <span class="new">run_real_robot_n17_arm64.sh</span>          <span class="cmt"># N1.7 launch real</span>
+├── <span class="new">index.html</span>                           <span class="cmt"># This documentation page</span>
 │
-├── <span class="dir">assets/</span>                                 <span class="cmt"># XLeRobot 3D 模型 (USD)</span>
-│   ├── <span class="dir">robots/xlerobot/</span>
-│   │   └── <span class="file">xlerobot.usd</span>
-│   └── <span class="dir">scenes/</span>
-│       ├── <span class="file">table_with_cube/scene.usd</span>
-│       └── <span class="file">lightwheel_loft/LW_Loft.usd</span>
+├── <span class="dir">docker/</span>
+│   ├── <span class="dir">sim/</span>
+│   │   ├── Dockerfile                   <span class="cmt"># Original (x86_64)</span>
+│   │   ├── <span class="new">Dockerfile.arm64</span>             <span class="cmt"># N1.6 ARM64</span>
+│   │   ├── <span class="new">Dockerfile.n17.arm64</span>         <span class="cmt"># N1.7 ARM64</span>
+│   │   └── entrypoint.sh
+│   ├── <span class="dir">real/</span>
+│   │   ├── Dockerfile.blackwell        <span class="cmt"># Original (x86_64)</span>
+│   │   ├── <span class="new">Dockerfile.blackwell.arm64</span>   <span class="cmt"># N1.6 ARM64</span>
+│   │   ├── <span class="new">Dockerfile.n17.blackwell.arm64</span> <span class="cmt"># N1.7 ARM64</span>
+│   │   ├── Dockerfile.ada
+│   │   └── <span class="dir">scripts/</span>                    <span class="cmt"># Real robot control</span>
+│   └── env                             <span class="cmt"># Robot port config</span>
 │
-├── <span class="dir">scripts/</span>                                <span class="cmt"># XLeRobot 遥操作脚本</span>
-│   ├── <span class="file">teleop_xlerobot.py</span>
-│   ├── <span class="file">test_xlerobot_env.py</span>
-│   └── <span class="file">test_xlerobot_env_debug.py</span>
+├── <span class="dir">images/</span>
+│   ├── so101_banner.png
+│   ├── <span class="new">xlerobot_isaac_sim.gif</span>           <span class="cmt"># Parallel sim demo</span>
+│   └── <span class="new">xlerobot_isaac_sim_show.gif</span>      <span class="cmt"># Close-up demo</span>
 │
-├── <span class="dir">source/xlerobot_tasks/</span>                  <span class="cmt"># XLeRobot IsaacLab 扩展</span>
-│   ├── <span class="file">setup.py</span>                            <span class="cmt"># find_packages() 自动发现</span>
-│   └── <span class="dir">xlerobot_tasks/</span>
-│       ├── <span class="file">__init__.py</span>
-│       ├── <span class="dir">assets/</span>                         <span class="cmt new"># [新增] 机器人 & 场景配置</span>
-│       │   ├── <span class="new">__init__.py</span>
-│       │   ├── <span class="new">xlerobot.py</span>                 <span class="cmt"># XLEROBOT_CFG</span>
-│       │   └── <span class="new">scenes.py</span>                   <span class="cmt"># TABLE_WITH_CUBE_CFG, LOFT_CFG</span>
-│       ├── <span class="dir">devices/</span>                        <span class="cmt"># 输入设备驱动</span>
-│       │   ├── <span class="file">device_base.py</span>
-│       │   ├── <span class="file">xlerobot_keyboard.py</span>
-│       │   ├── <span class="file">xlerobot_gamepad.py</span>
-│       │   └── <span class="file">gamepad_utils.py</span>
-│       ├── <span class="dir">tasks/xlerobot/</span>                 <span class="cmt"># 环境配置 + MDP</span>
-│       │   ├── <span class="file">__init__.py</span>                 <span class="cmt"># 注册 3 个 Gym 环境</span>
-│       │   ├── <span class="file">xlerobot_env_cfg.py</span>
-│       │   ├── <span class="file">xlerobot_lift_cube_env_cfg.py</span>
-│       │   ├── <span class="file">xlerobot_loft_env_cfg.py</span>
-│       │   └── <span class="dir">mdp/</span>
-│       └── <span class="dir">utils/</span>
-│           ├── <span class="file">constant.py</span>                 <span class="cmt"># 关节名、ASSETS_ROOT</span>
-│           ├── <span class="file">math_utils.py</span>
-│           ├── <span class="file">domain_randomization.py</span>
-│           └── <span class="file">general_assets.py</span>
-│
-├── <span class="dir">docs/</span>
-│   ├── <span class="file">DEVELOPMENT.md</span>
-│   └── <span class="file">FIXES.md</span>                            <span class="cmt"># 12 项修复技术详解</span>
-│
-└── <span class="dir">Sim-to-Real-SO-101-Workshop-main/</span>      <span class="cmt"># SO-101 Workshop</span>
-    ├── <span class="new">build_n17_arm64.sh</span>                  <span class="cmt new"># N1.7 一键构建</span>
-    ├── <span class="new">run_teleop_n17_arm64.sh</span>             <span class="cmt new"># N1.7 一键启动仿真</span>
-    ├── <span class="new">run_real_robot_n17_arm64.sh</span>         <span class="cmt new"># N1.7 一键启动真机</span>
-    ├── <span class="file">build_arm64.sh</span>                      <span class="cmt"># N1.6 一键构建</span>
-    ├── <span class="file">run_teleop_arm64.sh</span>                 <span class="cmt"># N1.6 一键启动仿真</span>
-    ├── <span class="file">run_real_robot_arm64.sh</span>             <span class="cmt"># N1.6 一键启动真机</span>
-    │
-    ├── <span class="dir">docker/</span>
-    │   ├── <span class="dir">sim/</span>
-    │   │   ├── <span class="file">Dockerfile</span>                  <span class="cmt"># 原始 (x86_64)</span>
-    │   │   ├── <span class="file">Dockerfile.arm64</span>            <span class="cmt"># N1.6 ARM64</span>
-    │   │   ├── <span class="new">Dockerfile.n17.arm64</span>        <span class="cmt new"># N1.7 ARM64 (Isaac Lab 3.0)</span>
-    │   │   └── <span class="file">entrypoint.sh</span>               <span class="cmt"># 自动安装两个包</span>
-    │   ├── <span class="dir">real/</span>
-    │   │   ├── <span class="file">Dockerfile.blackwell</span>
-    │   │   ├── <span class="file">Dockerfile.blackwell.arm64</span>  <span class="cmt"># N1.6 ARM64</span>
-    │   │   ├── <span class="new">Dockerfile.n17.blackwell.arm64</span> <span class="cmt new"># N1.7 ARM64</span>
-    │   │   ├── <span class="file">Dockerfile.ada</span>
-    │   │   └── <span class="dir">scripts/</span>                    <span class="cmt"># 真机控制脚本</span>
-    │   └── <span class="file">env</span>                             <span class="cmt"># 端口配置</span>
-    │
-    └── <span class="dir">source/sim_to_real_so101/</span>           <span class="cmt"># SO-101 任务代码</span>
-        ├── <span class="new">__init__.py</span>                     <span class="cmt new"># [新增]</span>
-        ├── <span class="file">setup.py</span>
-        ├── <span class="file">pyproject.toml</span>                  <span class="cmt"># requires-python>=3.10</span>
-        ├── <span class="dir">scripts/</span>
-        │   ├── <span class="new">__init__.py</span>                 <span class="cmt new"># [新增]</span>
-        │   ├── <span class="file">lerobot_agent.py</span>
-        │   ├── <span class="file">lerobot_eval.py</span>
-        │   └── <span class="file">...</span>
-        ├── <span class="dir">tasks/</span>
-        ├── <span class="dir">mdp/</span>
-        ├── <span class="dir">gr00t_client/</span>
-        ├── <span class="dir">utils/</span>
-        └── <span class="dir">assets/</span>
-            ├── <span class="file">so101.py</span>
-            ├── <span class="dir">usd/</span>
-            └── <span class="dir">hdri/</span></div>
-<div class="explain">标注 <span style="color:var(--green);font-weight:600">[新增]</span> 的文件是为修复 Python 包结构而新建的。</div>
+└── <span class="dir">source/sim_to_real_so101/</span>
+    ├── <span class="new">__init__.py</span>                      <span class="cmt"># Added for package discovery</span>
+    ├── setup.py
+    ├── pyproject.toml                   <span class="cmt"># requires-python >= 3.10</span>
+    ├── <span class="dir">scripts/</span>
+    │   ├── <span class="new">__init__.py</span>                  <span class="cmt"># Added for entry points</span>
+    │   ├── lerobot_agent.py
+    │   ├── lerobot_eval.py
+    │   └── ...
+    ├── <span class="dir">tasks/</span>                           <span class="cmt"># Environment definitions</span>
+    ├── <span class="dir">mdp/</span>                             <span class="cmt"># Observations, resets, terms</span>
+    ├── <span class="dir">gr00t_client/</span>                    <span class="cmt"># Policy inference client</span>
+    ├── <span class="dir">utils/</span>                           <span class="cmt"># LeRobot interface, recorder</span>
+    └── <span class="dir">assets/</span>                          <span class="cmt"># SO-101 USD, HDRI lighting</span></div>
+<p>Files marked in <span style="color:var(--c-green);font-weight:600">green</span> are additions to the original workshop repository.</p>
 </section>
 
-<div style="text-align:center;padding:40px 0;color:var(--muted);font-size:.85em;border-top:1px solid var(--border);margin-top:40px">
-  ARM64 适配方案来源于 Kabilankb 的 DGX Spark 调试记录 &nbsp;|&nbsp; Apache-2.0 License
+<div style="text-align:center;padding:40px 0;color:var(--c-muted);font-size:13px;border-top:1px solid var(--c-border);margin-top:40px">
+  Based on <a href="https://github.com/isaac-sim/Sim-to-Real-SO-101-Workshop">NVIDIA Sim-to-Real SO-101 Workshop</a>
+  &nbsp;·&nbsp; ARM64 adaptation reference: <a href="https://github.com/isaac-sim/Sim-to-Real-SO-101-Workshop/issues/1">Issue #1</a>
+  &nbsp;·&nbsp; Apache-2.0 License
 </div>
 
 </main>
 </div>
 
 <script>
-// Sidebar active state on scroll
-const sections = document.querySelectorAll('section[id]');
-const navLinks = document.querySelectorAll('.sidebar a');
-const observer = new IntersectionObserver(entries => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      navLinks.forEach(l => l.classList.remove('active'));
-      const link = document.querySelector(`.sidebar a[href="#${entry.target.id}"]`);
-      if (link) link.classList.add('active');
+// Sidebar scroll spy
+const secs = document.querySelectorAll('section[id]');
+const links = document.querySelectorAll('.sidebar a');
+const obs = new IntersectionObserver(es => {
+  es.forEach(e => {
+    if (e.isIntersecting) {
+      links.forEach(l => l.classList.remove('active'));
+      const l = document.querySelector(`.sidebar a[href="#${e.target.id}"]`);
+      if (l) l.classList.add('active');
     }
   });
-}, { rootMargin: '-20% 0px -75% 0px' });
-sections.forEach(s => observer.observe(s));
+}, { rootMargin: '-10% 0px -80% 0px' });
+secs.forEach(s => obs.observe(s));
 
-// Version tab switching
+// Version tabs
 document.querySelectorAll('.vtab').forEach(tab => {
   tab.addEventListener('click', () => {
-    const group = tab.parentElement.dataset.group;
-    const target = tab.dataset.tab;
-    // Update tabs in this group
-    tab.parentElement.querySelectorAll('.vtab').forEach(t => t.classList.remove('active'));
+    const g = tab.parentElement.dataset.group, t = tab.dataset.tab;
+    tab.parentElement.querySelectorAll('.vtab').forEach(x => x.classList.remove('active'));
     tab.classList.add('active');
-    // Update panels in this group
-    document.querySelectorAll(`.vpanel[data-group="${group}"]`).forEach(p => {
-      p.classList.toggle('active', p.dataset.tab === target);
+    document.querySelectorAll(`.vpanel[data-group="${g}"]`).forEach(p => {
+      p.classList.toggle('active', p.dataset.tab === t);
     });
   });
 });

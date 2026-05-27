@@ -1,1 +1,0 @@
-"""XLeRobot asset configurations."""
