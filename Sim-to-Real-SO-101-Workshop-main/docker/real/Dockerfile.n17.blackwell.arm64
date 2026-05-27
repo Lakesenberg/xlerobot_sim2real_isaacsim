@@ -1,0 +1,67 @@
+# ===========================================================================
+# Real Robot Container for GR00T N1.7 + DGX Spark ARM64
+# Based on johnnynunez's reference: github.com/isaac-sim/Sim-to-Real-SO-101-Workshop/issues/1
+# ===========================================================================
+
+FROM nvidia/cuda:13.2.2-devel-ubuntu24.04
+
+ARG GROOT_REF=4b1dca9d88d2a0b9ea5a65aa61c82ff89f5c4f0e
+
+# Python 3.12 ships with Ubuntu 24.04 — no deadsnakes PPA needed
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    cmake \
+    git \
+    sed \
+    python3.12 \
+    python3.12-dev \
+    python3.12-venv \
+    && rm -rf /var/lib/apt/lists/*
+RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.12 1
+RUN python3.12 -m ensurepip --upgrade \
+    && python3.12 -m pip install --upgrade pip setuptools wheel packaging ninja
+
+RUN apt-get remove -y python3-cryptography python3-cryptography-dev 2>/dev/null || true
+RUN python3 -m pip install --ignore-installed cryptography
+
+RUN git clone https://github.com/NVIDIA/Isaac-GR00T.git /Isaac-GR00T
+RUN cd /Isaac-GR00T && \
+    git checkout "${GROOT_REF}" && \
+    git rev-parse --verify HEAD && \
+    sed -i '/flash-attn==/d' pyproject.toml && \
+    sed -i '/triton==/d' pyproject.toml && \
+    python3 -m pip install -e . --break-system-packages
+
+# ARM64: Install bundled torchcodec wheel if available (PyPI may lack ARM64 build)
+RUN for whl in /Isaac-GR00T/scripts/deployment/dgpu/wheels/torchcodec-*-cp312-cp312-linux_aarch64.whl; do \
+    [ -f "$whl" ] && python3 -m pip install "$whl" --break-system-packages && break; \
+    done; true
+
+RUN cd /Isaac-GR00T/gr00t/eval/real_robot/SO100 && \
+    python3 -m pip install -e . --break-system-packages
+
+# Install PyTorch nightly with CUDA 13.x support
+RUN python3 -m pip uninstall -y torch torchvision torchaudio && \
+    python3 -m pip install --pre torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/cu130
+
+# ARM64: Limit parallel jobs to avoid OOM during flash-attn compilation
+RUN export MAX_JOBS=2 && python3 -m pip install flash-attn --no-build-isolation --no-cache-dir
+RUN python3 -m pip install feetech-servo-sdk
+
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.12 1
+COPY docker/utils.sh /root/tmp/utils.sh
+RUN cat /root/tmp/utils.sh >> /root/.bashrc && rm /root/tmp/utils.sh
+
+# for rerun GUI
+RUN apt-get update && apt-get install -y \
+    libx11-6 \
+    libxcb1 \
+    libxkbcommon0 \
+    libxkbcommon-x11-0 \
+    libgl1 \
+    libegl1 \
+    libxrandr2 \
+    libxinerama1 \
+    libxcursor1 \
+    libxi6 \
+    && rm -rf /var/lib/apt/lists/*
