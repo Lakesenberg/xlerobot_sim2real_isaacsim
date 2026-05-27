@@ -470,15 +470,222 @@ python so101_eval.py \
 <section id="envs">
 <h2 lang-en>Available environments</h2>
 <h2 lang-cn>可用仿真环境</h2>
-<table>
-<tr><th>Environment ID</th><th lang-en>Description</th><th lang-cn>说明</th></tr>
-<tr><td><code>Lerobot-So101-Teleop-Vials-To-Rack</code></td><td lang-en>Main task: pick vial, place in rack</td><td lang-cn>主任务：抓试管放架子</td></tr>
-<tr><td><code>Lerobot-So101-Teleop-Vials-To-Rack-DR</code></td><td lang-en>Same + domain randomization (recommended)</td><td lang-cn>同上 + 域随机化（推荐）</td></tr>
-<tr><td><code>Lerobot-So101-Teleop-Vials-To-Rack-Eval</code></td><td lang-en>Evaluation, fixed appearance</td><td lang-cn>评估，固定外观</td></tr>
-<tr><td><code>Lerobot-So101-Teleop-Vials-To-Rack-DR-Eval</code></td><td lang-en>Evaluation + domain randomization</td><td lang-cn>评估 + 域随机化</td></tr>
-<tr><td><code>Lerobot-So101-Teleop-Base</code></td><td lang-en>Debug: basic teleop</td><td lang-cn>调试：基础遥操作</td></tr>
-<tr><td><code>Lerobot-So101-Teleop-Task</code></td><td lang-en>Debug: lightbox + cameras</td><td lang-cn>调试：灯箱 + 摄像头</td></tr>
-</table>
+
+<style>
+.env-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;margin:16px 0}
+.env-card{border:1px solid var(--border);border-radius:8px;overflow:hidden;background:var(--bg)}
+.env-card.main{border-color:var(--accent);border-width:2px}
+.env-preview{background:#1a1a2e;padding:16px;display:flex;justify-content:center;min-height:140px;position:relative}
+.env-preview svg{max-width:100%;height:auto}
+.env-tag{position:absolute;top:8px;right:8px;font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600}
+.env-tag.task{background:var(--accent);color:#fff}
+.env-tag.eval{background:var(--green);color:#fff}
+.env-tag.debug{background:var(--muted);color:#fff}
+.env-tag.rec{background:var(--orange);color:#fff}
+.env-info{padding:12px 16px}
+.env-info code{font-size:11px;word-break:break-all}
+.env-info p{font-size:13px;color:var(--muted);margin:4px 0 0}
+</style>
+
+<div class="env-grid">
+
+<!-- Vials-To-Rack -->
+<div class="env-card main">
+<div class="env-preview">
+<span class="env-tag task">MAIN TASK</span>
+<svg viewBox="0 0 260 120" width="260" xmlns="http://www.w3.org/2000/svg">
+<!-- mat -->
+<rect x="30" y="70" width="200" height="40" rx="3" fill="#2d2d3d" stroke="#444" stroke-width="1"/>
+<!-- robot base -->
+<rect x="40" y="55" width="22" height="20" rx="2" fill="#e07020"/>
+<!-- robot arm segments -->
+<line x1="51" y1="55" x2="51" y2="30" stroke="#e07020" stroke-width="4" stroke-linecap="round"/>
+<line x1="51" y1="30" x2="80" y2="20" stroke="#e07020" stroke-width="3" stroke-linecap="round"/>
+<line x1="80" y1="20" x2="100" y2="28" stroke="#e07020" stroke-width="2.5" stroke-linecap="round"/>
+<!-- gripper -->
+<line x1="100" y1="25" x2="105" y2="20" stroke="#e07020" stroke-width="2"/>
+<line x1="100" y1="31" x2="105" y2="36" stroke="#e07020" stroke-width="2"/>
+<!-- vials -->
+<rect x="120" y="60" width="8" height="20" rx="3" fill="#7ec8e3" opacity=".9"/>
+<rect x="138" y="60" width="8" height="20" rx="3" fill="#7ec8e3" opacity=".9"/>
+<rect x="156" y="60" width="8" height="20" rx="3" fill="#7ec8e3" opacity=".9"/>
+<!-- rack -->
+<rect x="185" y="58" width="35" height="24" rx="2" fill="none" stroke="#f0c040" stroke-width="2"/>
+<line x1="197" y1="58" x2="197" y2="82" stroke="#f0c040" stroke-width="1.5"/>
+<line x1="208" y1="58" x2="208" y2="82" stroke="#f0c040" stroke-width="1.5"/>
+<!-- labels -->
+<text x="51" y="100" fill="#888" font-size="8" text-anchor="middle" font-family="sans-serif">SO-101</text>
+<text x="140" y="100" fill="#888" font-size="8" text-anchor="middle" font-family="sans-serif">Vials</text>
+<text x="202" y="100" fill="#888" font-size="8" text-anchor="middle" font-family="sans-serif">Rack</text>
+</svg>
+</div>
+<div class="env-info">
+<code>Lerobot-So101-Teleop-Vials-To-Rack</code>
+<p lang-en>Pick up vial, place in yellow rack. Fixed appearance.</p>
+<p lang-cn>抓试管放入黄色架子。固定外观。</p>
+</div>
+</div>
+
+<!-- Vials-To-Rack-DR -->
+<div class="env-card main">
+<div class="env-preview">
+<span class="env-tag rec">RECOMMENDED</span>
+<svg viewBox="0 0 260 120" width="260" xmlns="http://www.w3.org/2000/svg">
+<!-- mat (rotated slightly) -->
+<rect x="25" y="68" width="210" height="42" rx="3" fill="#2d2d3d" stroke="#444" stroke-width="1" transform="rotate(-2 130 89)"/>
+<!-- varying light -->
+<circle cx="200" cy="15" r="18" fill="#ffe066" opacity=".15"/>
+<circle cx="60" cy="10" r="12" fill="#66bbff" opacity=".12"/>
+<!-- robot base (teal color variant) -->
+<rect x="40" y="55" width="22" height="20" rx="2" fill="#20a0a0"/>
+<line x1="51" y1="55" x2="51" y2="30" stroke="#20a0a0" stroke-width="4" stroke-linecap="round"/>
+<line x1="51" y1="30" x2="80" y2="20" stroke="#20a0a0" stroke-width="3" stroke-linecap="round"/>
+<line x1="80" y1="20" x2="100" y2="28" stroke="#20a0a0" stroke-width="2.5" stroke-linecap="round"/>
+<line x1="100" y1="25" x2="105" y2="20" stroke="#20a0a0" stroke-width="2"/>
+<line x1="100" y1="31" x2="105" y2="36" stroke="#20a0a0" stroke-width="2"/>
+<!-- vials (shifted positions) -->
+<rect x="115" y="62" width="8" height="20" rx="3" fill="#7ec8e3" opacity=".9"/>
+<rect x="140" y="58" width="8" height="20" rx="3" fill="#7ec8e3" opacity=".9"/>
+<rect x="160" y="64" width="8" height="20" rx="3" fill="#7ec8e3" opacity=".9"/>
+<!-- rack -->
+<rect x="185" y="58" width="35" height="24" rx="2" fill="none" stroke="#f0c040" stroke-width="2"/>
+<line x1="197" y1="58" x2="197" y2="82" stroke="#f0c040" stroke-width="1.5"/>
+<line x1="208" y1="58" x2="208" y2="82" stroke="#f0c040" stroke-width="1.5"/>
+<!-- DR indicators -->
+<text x="130" y="14" fill="#ffe066" font-size="7" font-family="sans-serif" opacity=".7">varying light</text>
+<text x="51" y="100" fill="#888" font-size="8" text-anchor="middle" font-family="sans-serif">color varies</text>
+<text x="140" y="100" fill="#888" font-size="8" text-anchor="middle" font-family="sans-serif">pos varies</text>
+<text x="202" y="100" fill="#888" font-size="8" text-anchor="middle" font-family="sans-serif">Rack</text>
+</svg>
+</div>
+<div class="env-info">
+<code>Lerobot-So101-Teleop-Vials-To-Rack-DR</code>
+<p lang-en>Same task + domain randomization: lighting, robot color, mat rotation, camera pose. Best for sim-to-real.</p>
+<p lang-cn>同上 + 域随机化：灯光、机器人颜色、垫子旋转、摄像头位姿。Sim-to-Real 最佳选择。</p>
+</div>
+</div>
+
+<!-- Eval -->
+<div class="env-card">
+<div class="env-preview">
+<span class="env-tag eval">EVAL</span>
+<svg viewBox="0 0 260 120" width="260" xmlns="http://www.w3.org/2000/svg">
+<rect x="30" y="70" width="200" height="40" rx="3" fill="#2d2d3d" stroke="#444" stroke-width="1"/>
+<rect x="40" y="55" width="22" height="20" rx="2" fill="#e07020"/>
+<line x1="51" y1="55" x2="51" y2="30" stroke="#e07020" stroke-width="4" stroke-linecap="round"/>
+<line x1="51" y1="30" x2="80" y2="20" stroke="#e07020" stroke-width="3" stroke-linecap="round"/>
+<line x1="80" y1="20" x2="100" y2="28" stroke="#e07020" stroke-width="2.5" stroke-linecap="round"/>
+<line x1="100" y1="25" x2="105" y2="20" stroke="#e07020" stroke-width="2"/>
+<line x1="100" y1="31" x2="105" y2="36" stroke="#e07020" stroke-width="2"/>
+<rect x="120" y="60" width="8" height="20" rx="3" fill="#7ec8e3" opacity=".9"/>
+<rect x="138" y="60" width="8" height="20" rx="3" fill="#7ec8e3" opacity=".9"/>
+<rect x="156" y="60" width="8" height="20" rx="3" fill="#7ec8e3" opacity=".9"/>
+<rect x="185" y="58" width="35" height="24" rx="2" fill="none" stroke="#f0c040" stroke-width="2"/>
+<line x1="197" y1="58" x2="197" y2="82" stroke="#f0c040" stroke-width="1.5"/>
+<line x1="208" y1="58" x2="208" y2="82" stroke="#f0c040" stroke-width="1.5"/>
+<!-- metrics overlay -->
+<rect x="160" y="8" width="80" height="22" rx="4" fill="#059669" opacity=".2"/>
+<text x="200" y="23" fill="#059669" font-size="9" text-anchor="middle" font-family="sans-serif" font-weight="600">success rate</text>
+</svg>
+</div>
+<div class="env-info">
+<code>Lerobot-So101-Teleop-Vials-To-Rack-Eval</code>
+<p lang-en>Evaluation mode. Fixed orange robot, no DR. Measures policy success rate.</p>
+<p lang-cn>评估模式。固定橙色机器人，无域随机化。测量策略成功率。</p>
+</div>
+</div>
+
+<!-- Eval-DR -->
+<div class="env-card">
+<div class="env-preview">
+<span class="env-tag eval">EVAL + DR</span>
+<svg viewBox="0 0 260 120" width="260" xmlns="http://www.w3.org/2000/svg">
+<circle cx="200" cy="15" r="18" fill="#ffe066" opacity=".15"/>
+<circle cx="60" cy="10" r="12" fill="#66bbff" opacity=".12"/>
+<rect x="25" y="68" width="210" height="42" rx="3" fill="#2d2d3d" stroke="#444" stroke-width="1" transform="rotate(-2 130 89)"/>
+<rect x="40" y="55" width="22" height="20" rx="2" fill="#222"/>
+<line x1="51" y1="55" x2="51" y2="30" stroke="#222" stroke-width="4" stroke-linecap="round"/>
+<line x1="51" y1="30" x2="80" y2="20" stroke="#222" stroke-width="3" stroke-linecap="round"/>
+<line x1="80" y1="20" x2="100" y2="28" stroke="#222" stroke-width="2.5" stroke-linecap="round"/>
+<line x1="100" y1="25" x2="105" y2="20" stroke="#222" stroke-width="2"/>
+<line x1="100" y1="31" x2="105" y2="36" stroke="#222" stroke-width="2"/>
+<rect x="115" y="62" width="8" height="20" rx="3" fill="#7ec8e3" opacity=".9"/>
+<rect x="140" y="58" width="8" height="20" rx="3" fill="#7ec8e3" opacity=".9"/>
+<rect x="160" y="64" width="8" height="20" rx="3" fill="#7ec8e3" opacity=".9"/>
+<rect x="185" y="58" width="35" height="24" rx="2" fill="none" stroke="#f0c040" stroke-width="2"/>
+<line x1="197" y1="58" x2="197" y2="82" stroke="#f0c040" stroke-width="1.5"/>
+<line x1="208" y1="58" x2="208" y2="82" stroke="#f0c040" stroke-width="1.5"/>
+<rect x="160" y="8" width="80" height="22" rx="4" fill="#059669" opacity=".2"/>
+<text x="200" y="23" fill="#059669" font-size="9" text-anchor="middle" font-family="sans-serif" font-weight="600">success rate</text>
+</svg>
+</div>
+<div class="env-info">
+<code>Lerobot-So101-Teleop-Vials-To-Rack-DR-Eval</code>
+<p lang-en>Evaluation with full domain randomization. Tests policy robustness.</p>
+<p lang-cn>带域随机化的评估。测试策略鲁棒性。</p>
+</div>
+</div>
+
+<!-- Base -->
+<div class="env-card">
+<div class="env-preview">
+<span class="env-tag debug">DEBUG</span>
+<svg viewBox="0 0 260 120" width="260" xmlns="http://www.w3.org/2000/svg">
+<!-- ground plane -->
+<rect x="20" y="70" width="220" height="40" rx="3" fill="#2a2a3a" stroke="#444" stroke-width="1"/>
+<line x1="20" y1="90" x2="240" y2="90" stroke="#333" stroke-width=".5" stroke-dasharray="4"/>
+<!-- robot only -->
+<rect x="110" y="50" width="24" height="22" rx="2" fill="#e07020"/>
+<line x1="122" y1="50" x2="122" y2="22" stroke="#e07020" stroke-width="4" stroke-linecap="round"/>
+<line x1="122" y1="22" x2="155" y2="14" stroke="#e07020" stroke-width="3" stroke-linecap="round"/>
+<line x1="155" y1="14" x2="175" y2="22" stroke="#e07020" stroke-width="2.5" stroke-linecap="round"/>
+<line x1="175" y1="19" x2="180" y2="14" stroke="#e07020" stroke-width="2"/>
+<line x1="175" y1="25" x2="180" y2="30" stroke="#e07020" stroke-width="2"/>
+<text x="122" y="100" fill="#888" font-size="9" text-anchor="middle" font-family="sans-serif">SO-101 only</text>
+<text x="122" y="112" fill="#666" font-size="7" text-anchor="middle" font-family="sans-serif">no task objects</text>
+</svg>
+</div>
+<div class="env-info">
+<code>Lerobot-So101-Teleop-Base</code>
+<p lang-en>Robot on ground plane, no task objects. For testing teleop and joint control.</p>
+<p lang-cn>仅机器人 + 地面，无任务物体。用于测试遥操作和关节控制。</p>
+</div>
+</div>
+
+<!-- Task -->
+<div class="env-card">
+<div class="env-preview">
+<span class="env-tag debug">DEBUG</span>
+<svg viewBox="0 0 260 120" width="260" xmlns="http://www.w3.org/2000/svg">
+<!-- mat -->
+<rect x="30" y="70" width="200" height="40" rx="3" fill="#2d2d3d" stroke="#444" stroke-width="1"/>
+<!-- lightbox -->
+<rect x="150" y="20" width="80" height="60" rx="4" fill="none" stroke="#888" stroke-width="1.5"/>
+<rect x="154" y="24" width="72" height="52" rx="2" fill="#333"/>
+<line x1="190" y1="30" x2="190" y2="70" stroke="#555" stroke-width=".5"/>
+<circle cx="190" cy="50" r="8" fill="#ffe" opacity=".15"/>
+<!-- robot -->
+<rect x="45" y="55" width="22" height="20" rx="2" fill="#e07020"/>
+<line x1="56" y1="55" x2="56" y2="32" stroke="#e07020" stroke-width="4" stroke-linecap="round"/>
+<line x1="56" y1="32" x2="85" y2="24" stroke="#e07020" stroke-width="3" stroke-linecap="round"/>
+<line x1="85" y1="24" x2="105" y2="30" stroke="#e07020" stroke-width="2.5" stroke-linecap="round"/>
+<!-- camera indicators -->
+<circle cx="105" cy="28" r="3" fill="#4488ff" opacity=".7"/>
+<circle cx="130" cy="10" r="3" fill="#4488ff" opacity=".7"/>
+<text x="105" y="18" fill="#4488ff" font-size="6" text-anchor="middle" font-family="sans-serif">cam1</text>
+<text x="130" y="7" fill="#4488ff" font-size="6" text-anchor="middle" font-family="sans-serif">cam2</text>
+<text x="56" y="100" fill="#888" font-size="8" text-anchor="middle" font-family="sans-serif">SO-101</text>
+<text x="190" y="100" fill="#888" font-size="8" text-anchor="middle" font-family="sans-serif">Lightbox</text>
+</svg>
+</div>
+<div class="env-info">
+<code>Lerobot-So101-Teleop-Task</code>
+<p lang-en>Robot + lightbox + cameras. For testing rendering, camera setup, and lighting.</p>
+<p lang-cn>机器人 + 灯箱 + 摄像头。用于测试渲染、摄像头配置和灯光。</p>
+</div>
+</div>
+
+</div><!-- env-grid -->
 
 <h3>CLI</h3>
 <table>
